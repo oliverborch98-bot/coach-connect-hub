@@ -2,3 +2,6 @@ project_id = "ieahvbddmrcyxuityruo"
 
 [functions.create-client]
 verify_jwt = false
+
+[functions.setup-coach]
+verify_jwt = false
