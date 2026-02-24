@@ -17,6 +17,7 @@ import ClientCheckIn from "@/pages/client/CheckIn";
 import ClientHabits from "@/pages/client/Habits";
 import ClientMessages from "@/pages/client/ClientMessages";
 import ClientProfile from "@/pages/client/ClientProfile";
+import ClientTraining from "@/pages/client/Training";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -55,6 +56,7 @@ function AppRoutes() {
     <Routes>
       <Route element={<ClientLayout />}>
         <Route path="/client" element={<ClientDashboard />} />
+        <Route path="/client/training" element={<ClientTraining />} />
         <Route path="/client/checkin" element={<ClientCheckIn />} />
         <Route path="/client/habits" element={<ClientHabits />} />
         <Route path="/client/messages" element={<ClientMessages />} />
