@@ -18,6 +18,9 @@ import ClientHabits from "@/pages/client/Habits";
 import ClientMessages from "@/pages/client/ClientMessages";
 import ClientProfile from "@/pages/client/ClientProfile";
 import ClientTraining from "@/pages/client/Training";
+import ClientNutritionPlan from "@/pages/client/NutritionPlan";
+import ClientPhasePlan from "@/pages/client/PhasePlan";
+import ClientGoalsScore from "@/pages/client/GoalsScore";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -57,6 +60,9 @@ function AppRoutes() {
       <Route element={<ClientLayout />}>
         <Route path="/client" element={<ClientDashboard />} />
         <Route path="/client/training" element={<ClientTraining />} />
+        <Route path="/client/nutrition" element={<ClientNutritionPlan />} />
+        <Route path="/client/phases" element={<ClientPhasePlan />} />
+        <Route path="/client/goals" element={<ClientGoalsScore />} />
         <Route path="/client/checkin" element={<ClientCheckIn />} />
         <Route path="/client/habits" element={<ClientHabits />} />
         <Route path="/client/messages" element={<ClientMessages />} />

@@ -1,9 +1,12 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell } from 'lucide-react';
+import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell, Utensils, Layers, Target } from 'lucide-react';
 
 const navItems = [
-  { to: '/client', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/client', icon: LayoutDashboard, label: 'Hjem', end: true },
   { to: '/client/training', icon: Dumbbell, label: 'Træning' },
+  { to: '/client/nutrition', icon: Utensils, label: 'Kost' },
+  { to: '/client/phases', icon: Layers, label: 'Faser' },
+  { to: '/client/goals', icon: Target, label: 'Mål' },
   { to: '/client/checkin', icon: ClipboardCheck, label: 'Check-in' },
   { to: '/client/habits', icon: CheckSquare, label: 'Habits' },
   { to: '/client/messages', icon: MessageSquare, label: 'Beskeder' },
@@ -21,11 +24,11 @@ export default function ClientLayout() {
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border flex justify-around py-2 z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border flex overflow-x-auto py-2 z-50 scrollbar-hide">
         {navItems.map(item => (
           <NavLink key={item.to} to={item.to} end={item.end}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 px-2 py-1.5 text-[10px] transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`
+              `flex flex-col items-center gap-1 min-w-[4rem] px-2 py-1.5 text-[10px] transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`
             }>
             <item.icon className="h-5 w-5" />
             {item.label}
