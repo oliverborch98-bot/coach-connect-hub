@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.setup-coach]
 verify_jwt = false
+
+[functions.setup-test-client]
+verify_jwt = false
