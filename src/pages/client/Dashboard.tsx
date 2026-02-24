@@ -1,15 +1,53 @@
 import { motion } from 'framer-motion';
-import { Target, Zap, ArrowRight, Calendar } from 'lucide-react';
+import { Target, Zap, ArrowRight, Calendar, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-const mockGoals = [
-  { title: 'Tab 8 kg', current: 5.5, target: 8, unit: 'kg' },
-  { title: 'Squat 120 kg', current: 105, target: 120, unit: 'kg' },
-  { title: '12 uger gennemført', current: 7, target: 12, unit: 'uger' },
-];
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const { data: clientProfile } = useQuery({
+    queryKey: ['my-client-profile'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_profiles')
+        .select('*')
+        .eq('user_id', user!.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: goals = [] } = useQuery({
+    queryKey: ['my-goals', clientProfile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('goals')
+        .select('*')
+        .eq('client_id', clientProfile!.id)
+        .eq('status', 'active');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientProfile,
+  });
+
+  const week = clientProfile?.current_week ?? 0;
+  const phase = clientProfile?.current_phase ?? 'Foundation';
+  const phasePct = Math.round((week / 12) * 100);
+
+  // Next Friday for check-in
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+  const nextFriday = new Date(now);
+  nextFriday.setDate(now.getDate() + daysUntilFriday);
+  const nextCheckinStr = nextFriday.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'short' });
 
   return (
     <div className="space-y-5 max-w-lg mx-auto">
@@ -18,19 +56,19 @@ export default function ClientDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground font-medium">Din fase</p>
-            <p className="text-lg font-bold text-primary">Acceleration</p>
+            <p className="text-lg font-bold text-primary capitalize">{phase}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-extrabold">7<span className="text-sm font-normal text-muted-foreground">/12</span></p>
+            <p className="text-2xl font-extrabold">{week}<span className="text-sm font-normal text-muted-foreground">/12</span></p>
             <p className="text-xs text-muted-foreground">uger</p>
           </div>
         </div>
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <div className="h-full gold-gradient rounded-full transition-all" style={{ width: '58%' }} />
+          <div className="h-full gold-gradient rounded-full transition-all" style={{ width: `${phasePct}%` }} />
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar className="h-3.5 w-3.5" />
-          Næste check-in: <span className="text-foreground font-medium">Søndag 1. mar</span>
+          Næste check-in: <span className="text-foreground font-medium">{nextCheckinStr}</span>
         </div>
       </motion.div>
 
@@ -39,20 +77,28 @@ export default function ClientDashboard() {
         <h2 className="text-sm font-semibold flex items-center gap-2">
           <Target className="h-4 w-4 text-primary" /> Dine mål
         </h2>
-        {mockGoals.map((goal, i) => {
-          const pct = Math.round((goal.current / goal.target) * 100);
-          return (
-            <div key={i} className="rounded-xl border border-border bg-card p-4">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="font-medium">{goal.title}</span>
-                <span className="text-muted-foreground">{goal.current}/{goal.target} {goal.unit}</span>
+        {goals.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card p-4 text-center">
+            <p className="text-sm text-muted-foreground">Ingen mål sat endnu</p>
+          </div>
+        ) : (
+          goals.map((goal) => {
+            const current = Number(goal.current_value) || 0;
+            const target = Number(goal.target_value) || 1;
+            const pct = Math.min(100, Math.round((current / target) * 100));
+            return (
+              <div key={goal.id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="font-medium">{goal.title}</span>
+                  <span className="text-muted-foreground">{current}/{target} {goal.unit}</span>
+                </div>
+                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-full gold-gradient rounded-full" style={{ width: `${pct}%` }} />
+                </div>
               </div>
-              <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full gold-gradient rounded-full" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </motion.div>
 
       {/* Quick Links */}
@@ -62,7 +108,6 @@ export default function ClientDashboard() {
         </h2>
         {[
           { label: 'Udfyld check-in', to: '/client/checkin' },
-          { label: 'Se faseplan', to: '/client/phases' },
           { label: 'Daglige habits', to: '/client/habits' },
         ].map(link => (
           <button

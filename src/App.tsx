@@ -18,11 +18,20 @@ import ClientHabits from "@/pages/client/Habits";
 import ClientMessages from "@/pages/client/ClientMessages";
 import ClientProfile from "@/pages/client/ClientProfile";
 import NotFound from "@/pages/NotFound";
+import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!user) return <Login />;
 

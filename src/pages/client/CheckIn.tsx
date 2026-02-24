@@ -1,15 +1,100 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ClipboardCheck, Send } from 'lucide-react';
+import { ClipboardCheck, Send, Loader2 } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function ClientCheckIn() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [form, setForm] = useState({ weight: '', bodyFat: '', calories: '', workoutsDone: '', workoutsTarget: '4', energy: 7, sleep: 7, notes: '' });
   const update = (f: string, v: string | number) => setForm(prev => ({ ...prev, [f]: v }));
 
+  const { data: clientProfile } = useQuery({
+    queryKey: ['my-client-profile'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('client_profiles')
+        .select('*')
+        .eq('user_id', user!.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  // Find next pending checkin
+  const { data: pendingCheckin } = useQuery({
+    queryKey: ['pending-checkin', clientProfile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('weekly_checkins')
+        .select('*')
+        .eq('client_id', clientProfile!.id)
+        .eq('status', 'pending')
+        .order('week_number', { ascending: true })
+        .limit(1)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!clientProfile,
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      if (!pendingCheckin) throw new Error('Ingen ventende check-in');
+      const { error } = await supabase
+        .from('weekly_checkins')
+        .update({
+          weight: parseFloat(form.weight) || null,
+          body_fat_pct: parseFloat(form.bodyFat) || null,
+          avg_calories: parseInt(form.calories) || null,
+          workouts_completed: parseInt(form.workoutsDone) || null,
+          workouts_target: parseInt(form.workoutsTarget) || 4,
+          energy_level: form.energy,
+          sleep_quality: form.sleep,
+          client_notes: form.notes || null,
+          status: 'submitted' as const,
+          submitted_at: new Date().toISOString(),
+          date: new Date().toISOString().split('T')[0],
+        })
+        .eq('id', pendingCheckin.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Check-in indsendt!');
+      queryClient.invalidateQueries({ queryKey: ['pending-checkin'] });
+      setForm({ weight: '', bodyFat: '', calories: '', workoutsDone: '', workoutsTarget: '4', energy: 7, sleep: 7, notes: '' });
+    },
+    onError: (err: any) => {
+      toast.error(err.message);
+    },
+  });
+
+  const week = pendingCheckin?.week_number ?? clientProfile?.current_week ?? 0;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Check-in indsendt! (Demo)');
+    submitMutation.mutate();
   };
+
+  if (!pendingCheckin && clientProfile) {
+    return (
+      <div className="space-y-5 max-w-lg mx-auto">
+        <div className="flex items-center gap-2">
+          <ClipboardCheck className="h-5 w-5 text-primary" />
+          <h1 className="text-xl font-bold">Ugentlig Check-in</h1>
+        </div>
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-muted-foreground text-sm">Ingen ventende check-ins lige nu 🎉</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 max-w-lg mx-auto">
@@ -17,7 +102,7 @@ export default function ClientCheckIn() {
         <ClipboardCheck className="h-5 w-5 text-primary" />
         <h1 className="text-xl font-bold">Ugentlig Check-in</h1>
       </div>
-      <p className="text-sm text-muted-foreground">Uge 7 af 12</p>
+      <p className="text-sm text-muted-foreground">Uge {week} af 12</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
@@ -73,8 +158,10 @@ export default function ClientCheckIn() {
           </div>
         </div>
 
-        <button type="submit" className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2">
-          <Send className="h-4 w-4" /> Indsend check-in
+        <button type="submit" disabled={submitMutation.isPending}
+          className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50">
+          {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {submitMutation.isPending ? 'Indsender...' : 'Indsend check-in'}
         </button>
       </form>
     </div>

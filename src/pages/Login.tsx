@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 
 export default function Login() {
-  const { login, isLoading } = useAuth();
+  const { signIn, isLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,7 +13,7 @@ export default function Login() {
     e.preventDefault();
     setError('');
     try {
-      await login(email, password);
+      await signIn(email, password);
     } catch (err: any) {
       setError(err.message);
     }
@@ -70,12 +70,6 @@ export default function Login() {
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {isLoading ? 'Logger ind...' : 'Log ind'}
           </button>
-
-          <div className="text-xs text-muted-foreground text-center pt-2 space-y-1">
-            <p>Demo: <span className="text-foreground">coach@buildmethod.dk</span></p>
-            <p>eller <span className="text-foreground">client@buildmethod.dk</span></p>
-            <p>(vilkårligt password)</p>
-          </div>
         </form>
       </motion.div>
     </div>

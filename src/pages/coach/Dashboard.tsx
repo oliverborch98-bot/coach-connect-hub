@@ -1,27 +1,82 @@
-import { Users, AlertCircle, Phone, TrendingUp } from 'lucide-react';
+import { Users, AlertCircle, Phone, TrendingUp, Loader2 } from 'lucide-react';
 import StatCard from '@/components/StatCard';
 import ClientCard from '@/components/ClientCard';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-
-const mockClients = [
-  { id: '1', name: 'Thomas Andersen', week: 7, compliance: 92, lastCheckin: '22. feb', status: 'on_track' as const },
-  { id: '2', name: 'Mikkel Hansen', week: 4, compliance: 67, lastCheckin: '20. feb', status: 'behind' as const },
-  { id: '3', name: 'Jonas Larsen', week: 11, compliance: 95, lastCheckin: '23. feb', status: 'on_track' as const },
-  { id: '4', name: 'Frederik Nielsen', week: 2, compliance: 45, lastCheckin: '15. feb', status: 'at_risk' as const },
-  { id: '5', name: 'Kasper Møller', week: 9, compliance: 88, lastCheckin: '22. feb', status: 'on_track' as const },
-  { id: '6', name: 'Emil Christensen', week: 6, compliance: 73, lastCheckin: '21. feb', status: 'behind' as const },
-  { id: '7', name: 'Oliver Pedersen', week: 1, compliance: 100, lastCheckin: '24. feb', status: 'on_track' as const },
-  { id: '8', name: 'Noah Rasmussen', week: 8, compliance: 81, lastCheckin: '23. feb', status: 'on_track' as const },
-];
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type FilterType = 'all' | 'active' | 'at_risk';
+
+interface ClientRow {
+  id: string;
+  current_week: number | null;
+  status: string | null;
+  user_id: string;
+  profiles: { full_name: string | null } | null;
+}
 
 export default function CoachDashboard() {
   const [filter, setFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<'name' | 'compliance' | 'week'>('name');
 
-  const filtered = mockClients
+  const { data: clients = [], isLoading } = useQuery({
+    queryKey: ['coach-clients'],
+    queryFn: async () => {
+      // Fetch client profiles with their profile names
+      const { data, error } = await supabase
+        .from('client_profiles')
+        .select('id, current_week, status, user_id, profiles!client_profiles_user_id_fkey(full_name)')
+        .eq('status', 'active');
+
+      if (error) throw error;
+
+      // For each client, get latest checkin
+      const clientsWithCheckins = await Promise.all(
+        (data as any[]).map(async (cp) => {
+          const { data: checkins } = await supabase
+            .from('weekly_checkins')
+            .select('date, status, submitted_at')
+            .eq('client_id', cp.id)
+            .eq('status', 'submitted')
+            .order('week_number', { ascending: false })
+            .limit(1);
+
+          const lastCheckin = checkins?.[0];
+          const name = cp.profiles?.full_name ?? 'Ukendt';
+          
+          // Calculate compliance: submitted checkins / total expected
+          const { count: submittedCount } = await supabase
+            .from('weekly_checkins')
+            .select('*', { count: 'exact', head: true })
+            .eq('client_id', cp.id)
+            .in('status', ['submitted', 'reviewed']);
+
+          const week = cp.current_week ?? 0;
+          const compliance = week > 0 ? Math.round(((submittedCount ?? 0) / week) * 100) : 100;
+
+          let clientStatus: 'on_track' | 'behind' | 'at_risk' = 'on_track';
+          if (compliance < 50) clientStatus = 'at_risk';
+          else if (compliance < 80) clientStatus = 'behind';
+
+          return {
+            id: cp.id,
+            name,
+            week,
+            compliance: Math.min(compliance, 100),
+            lastCheckin: lastCheckin?.submitted_at
+              ? new Date(lastCheckin.submitted_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })
+              : 'Ingen endnu',
+            status: clientStatus,
+          };
+        })
+      );
+
+      return clientsWithCheckins;
+    },
+  });
+
+  const filtered = clients
     .filter(c => {
       if (filter === 'at_risk') return c.status === 'at_risk' || c.status === 'behind';
       return true;
@@ -31,6 +86,12 @@ export default function CoachDashboard() {
       if (sortBy === 'week') return b.week - a.week;
       return a.name.localeCompare(b.name);
     });
+
+  const activeCount = clients.length;
+  const missingCheckins = clients.filter(c => c.lastCheckin === 'Ingen endnu').length;
+  const avgCompliance = clients.length > 0
+    ? Math.round(clients.reduce((sum, c) => sum + c.compliance, 0) / clients.length)
+    : 0;
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -44,10 +105,10 @@ export default function CoachDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Aktive klienter" value="8" icon={Users} subtitle="+2 denne måned" />
-        <StatCard label="Manglende check-ins" value="3" icon={AlertCircle} subtitle="Denne uge" variant="warning" />
-        <StatCard label="Calls denne uge" value="2" icon={Phone} subtitle="Næste: I morgen kl. 10" />
-        <StatCard label="Gns. compliance" value="87%" icon={TrendingUp} subtitle="+3% fra sidste uge" variant="success" />
+        <StatCard label="Aktive klienter" value={String(activeCount)} icon={Users} />
+        <StatCard label="Manglende check-ins" value={String(missingCheckins)} icon={AlertCircle} variant="warning" />
+        <StatCard label="Calls denne uge" value="–" icon={Phone} />
+        <StatCard label="Gns. compliance" value={`${avgCompliance}%`} icon={TrendingUp} variant="success" />
       </div>
 
       {/* Filters */}
@@ -77,13 +138,23 @@ export default function CoachDashboard() {
       </div>
 
       {/* Client Cards */}
-      <div className="grid gap-3 md:grid-cols-2">
-        {filtered.map((client, i) => (
-          <motion.div key={client.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <ClientCard {...client} />
-          </motion.div>
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-border bg-card p-8 text-center">
+          <p className="text-muted-foreground text-sm">Ingen klienter fundet</p>
+        </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {filtered.map((client, i) => (
+            <motion.div key={client.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <ClientCard {...client} />
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
