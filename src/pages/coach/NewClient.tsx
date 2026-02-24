@@ -1,7 +1,12 @@
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 export default function CoachNewClient() {
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', age: '',
     startDate: '', startWeight: '', goalWeight: '', primaryGoal: '',
@@ -9,10 +14,25 @@ export default function CoachNewClient() {
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Will integrate with Supabase
-    alert('Klient oprettet! (Demo)');
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-client', {
+        body: formData,
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success(`Klient oprettet! Midlertidig adgangskode: ${data.password}`, { duration: 15000 });
+      navigate('/coach');
+    } catch (err: any) {
+      toast.error(err.message || 'Fejl ved oprettelse af klient');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -65,8 +85,10 @@ export default function CoachNewClient() {
           </select>
         </div>
 
-        <button type="submit" className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity">
-          Opret klient
+        <button type="submit" disabled={isSubmitting}
+          className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
+          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+          {isSubmitting ? 'Opretter...' : 'Opret klient'}
         </button>
       </form>
     </div>
