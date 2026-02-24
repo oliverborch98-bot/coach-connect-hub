@@ -1,8 +1,9 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User } from 'lucide-react';
+import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell } from 'lucide-react';
 
 const navItems = [
   { to: '/client', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/client/training', icon: Dumbbell, label: 'Træning' },
   { to: '/client/checkin', icon: ClipboardCheck, label: 'Check-in' },
   { to: '/client/habits', icon: CheckSquare, label: 'Habits' },
   { to: '/client/messages', icon: MessageSquare, label: 'Beskeder' },
