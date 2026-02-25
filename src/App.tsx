@@ -12,6 +12,8 @@ import CoachClientDetail from "@/pages/coach/ClientDetail";
 import CoachCalls from "@/pages/coach/Calls";
 import CoachNewClient from "@/pages/coach/NewClient";
 import CoachSettings from "@/pages/coach/Settings";
+import ProgramBuilder from "@/pages/coach/ProgramBuilder";
+import NutritionBuilder from "@/pages/coach/NutritionBuilder";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientCheckIn from "@/pages/client/CheckIn";
 import ClientHabits from "@/pages/client/Habits";
@@ -48,6 +50,8 @@ function AppRoutes() {
           <Route path="/coach/calls" element={<CoachCalls />} />
           <Route path="/coach/new-client" element={<CoachNewClient />} />
           <Route path="/coach/settings" element={<CoachSettings />} />
+          <Route path="/coach/program-builder" element={<ProgramBuilder />} />
+          <Route path="/coach/nutrition-builder" element={<NutritionBuilder />} />
         </Route>
         <Route path="/" element={<Navigate to="/coach" replace />} />
         <Route path="*" element={<Navigate to="/coach" replace />} />
