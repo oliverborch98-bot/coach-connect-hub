@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useRef, useEffect } from 'react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export default function ClientMessages() {
   const { user } = useAuth();
@@ -39,8 +40,22 @@ export default function ClientMessages() {
       return data;
     },
     enabled: !!user && !!coachId,
-    refetchInterval: 5000,
   });
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!user || !coachId) return;
+    const channel: RealtimeChannel = supabase
+      .channel('client-messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const msg = payload.new as any;
+        if ((msg.sender_id === user.id && msg.receiver_id === coachId) || (msg.sender_id === coachId && msg.receiver_id === user.id)) {
+          queryClient.invalidateQueries({ queryKey: ['messages'] });
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, coachId, queryClient]);
 
   // Mark unread messages as read
   useEffect(() => {

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Send } from 'lucide-react';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export default function ClientMessagesTab({ clientId }: { clientId: string }) {
   const { user } = useAuth();
@@ -38,6 +39,20 @@ export default function ClientMessagesTab({ clientId }: { clientId: string }) {
     },
     enabled: !!clientUserId,
   });
+
+  useEffect(() => {
+    if (!user || !clientUserId) return;
+    const channel: RealtimeChannel = supabase
+      .channel(`coach-messages-${clientId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const msg = payload.new as any;
+        if ((msg.sender_id === user.id && msg.receiver_id === clientUserId) || (msg.sender_id === clientUserId && msg.receiver_id === user.id)) {
+          queryClient.invalidateQueries({ queryKey: ['coach-client-messages', clientUserId] });
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, clientUserId, clientId, queryClient]);
 
   const sendMessage = useMutation({
     mutationFn: async () => {
