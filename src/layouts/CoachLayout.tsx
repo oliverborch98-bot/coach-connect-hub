@@ -1,11 +1,13 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Phone, UserPlus, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Phone, UserPlus, Settings, LogOut, Dumbbell, UtensilsCrossed } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { to: '/coach', icon: LayoutDashboard, label: 'Oversigt', end: true },
   { to: '/coach/calls', icon: Phone, label: 'Calls' },
   { to: '/coach/new-client', icon: UserPlus, label: 'Ny klient' },
+  { to: '/coach/program-builder', icon: Dumbbell, label: 'Program' },
+  { to: '/coach/nutrition-builder', icon: UtensilsCrossed, label: 'Kostplan' },
   { to: '/coach/settings', icon: Settings, label: 'Indstillinger' },
 ];
 
