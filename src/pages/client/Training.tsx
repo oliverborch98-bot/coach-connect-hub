@@ -1,13 +1,23 @@
-import { Dumbbell, ChevronDown, Loader2 } from 'lucide-react';
+import { Dumbbell, ChevronDown, Loader2, Save, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+interface LogEntry {
+  training_exercise_id: string;
+  set_number: number;
+  reps_completed: number | null;
+  weight_used: number | null;
+}
+
 export default function ClientTraining() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
+  const [localLogs, setLocalLogs] = useState<Record<string, LogEntry>>({});
+  const [savedKeys, setSavedKeys] = useState<Set<string>>(new Set());
 
   const { data: clientProfile } = useQuery({
     queryKey: ['my-client-profile-training', user?.id],
@@ -68,6 +78,73 @@ export default function ClientTraining() {
     enabled: trainingDays.length > 0,
   });
 
+  // Fetch today's existing logs
+  const today = new Date().toISOString().split('T')[0];
+  const { data: existingLogs = [] } = useQuery({
+    queryKey: ['workout-logs-today', clientProfile?.id, today],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('workout_logs')
+        .select('*')
+        .eq('client_id', clientProfile!.id)
+        .eq('date', today);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientProfile,
+  });
+
+  const saveLog = useMutation({
+    mutationFn: async (entry: LogEntry) => {
+      const existing = existingLogs.find(
+        l => l.training_exercise_id === entry.training_exercise_id && l.set_number === entry.set_number
+      );
+      if (existing) {
+        const { error } = await supabase.from('workout_logs').update({
+          reps_completed: entry.reps_completed,
+          weight_used: entry.weight_used,
+        }).eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('workout_logs').insert({
+          client_id: clientProfile!.id,
+          training_exercise_id: entry.training_exercise_id,
+          set_number: entry.set_number,
+          reps_completed: entry.reps_completed,
+          weight_used: entry.weight_used,
+          date: today,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: (_, entry) => {
+      const key = `${entry.training_exercise_id}_${entry.set_number}`;
+      setSavedKeys(prev => new Set(prev).add(key));
+      queryClient.invalidateQueries({ queryKey: ['workout-logs-today'] });
+      setTimeout(() => setSavedKeys(prev => { const n = new Set(prev); n.delete(key); return n; }), 1500);
+    },
+  });
+
+  const getLogValue = (exId: string, setNum: number, field: 'reps_completed' | 'weight_used') => {
+    const key = `${exId}_${setNum}`;
+    if (localLogs[key]) return localLogs[key][field];
+    const existing = existingLogs.find(l => l.training_exercise_id === exId && l.set_number === setNum);
+    return existing?.[field] ?? null;
+  };
+
+  const updateLocal = (exId: string, setNum: number, field: 'reps_completed' | 'weight_used', value: number | null) => {
+    const key = `${exId}_${setNum}`;
+    setLocalLogs(prev => ({
+      ...prev,
+      [key]: {
+        training_exercise_id: exId,
+        set_number: setNum,
+        reps_completed: field === 'reps_completed' ? value : (prev[key]?.reps_completed ?? getLogValue(exId, setNum, 'reps_completed')),
+        weight_used: field === 'weight_used' ? value : (prev[key]?.weight_used ?? getLogValue(exId, setNum, 'weight_used')),
+      },
+    }));
+  };
+
   const toggleDay = (dayId: string) => {
     setExpandedDay(prev => (prev === dayId ? null : dayId));
   };
@@ -96,18 +173,14 @@ export default function ClientTraining() {
         </div>
       ) : (
         <>
-          {/* Program header */}
           <div className="rounded-xl border border-border bg-card p-4">
             <h2 className="font-semibold">{program.name}</h2>
             <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
-              {program.phase && (
-                <span>Fase {program.phase}</span>
-              )}
+              {program.phase && <span>Fase {program.phase}</span>}
               <span className="capitalize">{program.status}</span>
             </div>
           </div>
 
-          {/* Training days */}
           <div className="space-y-3">
             {trainingDays.map((day, idx) => {
               const dayExercises = exercises.filter(e => e.training_day_id === day.id);
@@ -121,19 +194,12 @@ export default function ClientTraining() {
                   transition={{ delay: idx * 0.05 }}
                   className="rounded-xl border border-border bg-card overflow-hidden"
                 >
-                  <button
-                    onClick={() => toggleDay(day.id)}
-                    className="w-full flex items-center justify-between p-4 text-left"
-                  >
+                  <button onClick={() => toggleDay(day.id)} className="w-full flex items-center justify-between p-4 text-left">
                     <div>
                       <p className="font-semibold text-sm">{day.day_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {dayExercises.length} øvelser
-                      </p>
+                      <p className="text-xs text-muted-foreground">{dayExercises.length} øvelser</p>
                     </div>
-                    <ChevronDown
-                      className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                    />
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
@@ -145,26 +211,17 @@ export default function ClientTraining() {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-4 space-y-3">
+                        <div className="px-4 pb-4 space-y-4">
                           {dayExercises.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">
-                              Ingen øvelser tilføjet endnu.
-                            </p>
+                            <p className="text-xs text-muted-foreground">Ingen øvelser tilføjet endnu.</p>
                           ) : (
                             dayExercises.map((ex, i) => (
-                              <div
-                                key={ex.id}
-                                className="rounded-lg bg-secondary/50 p-3 space-y-1"
-                              >
+                              <div key={ex.id} className="rounded-lg bg-secondary/50 p-3 space-y-2">
                                 <div className="flex items-start justify-between">
                                   <div>
-                                    <p className="text-sm font-medium">
-                                      {i + 1}. {(ex as any).exercises?.name ?? 'Øvelse'}
-                                    </p>
+                                    <p className="text-sm font-medium">{i + 1}. {(ex as any).exercises?.name ?? 'Øvelse'}</p>
                                     {(ex as any).exercises?.muscle_group && (
-                                      <p className="text-[10px] text-muted-foreground capitalize">
-                                        {(ex as any).exercises.muscle_group}
-                                      </p>
+                                      <p className="text-[10px] text-muted-foreground capitalize">{(ex as any).exercises.muscle_group}</p>
                                     )}
                                   </div>
                                 </div>
@@ -174,19 +231,56 @@ export default function ClientTraining() {
                                   {ex.tempo && <span>Tempo: {ex.tempo}</span>}
                                   {ex.rest_seconds && <span>Hvile: {ex.rest_seconds}s</span>}
                                 </div>
-                                {ex.notes && (
-                                  <p className="text-xs text-muted-foreground italic">
-                                    {ex.notes}
-                                  </p>
-                                )}
+
+                                {/* Workout log inputs */}
+                                <div className="space-y-1.5 mt-2">
+                                  {Array.from({ length: ex.sets }, (_, s) => s + 1).map(setNum => {
+                                    const key = `${ex.id}_${setNum}`;
+                                    const isSaved = savedKeys.has(key);
+                                    return (
+                                      <div key={setNum} className="flex items-center gap-2">
+                                        <span className="text-[10px] text-muted-foreground w-10">Sæt {setNum}</span>
+                                        <input
+                                          type="number"
+                                          inputMode="numeric"
+                                          placeholder="kg"
+                                          value={getLogValue(ex.id, setNum, 'weight_used') ?? ''}
+                                          onChange={e => updateLocal(ex.id, setNum, 'weight_used', e.target.value ? Number(e.target.value) : null)}
+                                          className="w-16 rounded bg-background border border-border px-2 py-1 text-xs text-center"
+                                        />
+                                        <span className="text-[10px] text-muted-foreground">×</span>
+                                        <input
+                                          type="number"
+                                          inputMode="numeric"
+                                          placeholder="reps"
+                                          value={getLogValue(ex.id, setNum, 'reps_completed') ?? ''}
+                                          onChange={e => updateLocal(ex.id, setNum, 'reps_completed', e.target.value ? Number(e.target.value) : null)}
+                                          className="w-16 rounded bg-background border border-border px-2 py-1 text-xs text-center"
+                                        />
+                                        <button
+                                          onClick={() => {
+                                            const entry = localLogs[key] ?? {
+                                              training_exercise_id: ex.id,
+                                              set_number: setNum,
+                                              reps_completed: getLogValue(ex.id, setNum, 'reps_completed'),
+                                              weight_used: getLogValue(ex.id, setNum, 'weight_used'),
+                                            };
+                                            saveLog.mutate(entry);
+                                          }}
+                                          className="p-1 rounded hover:bg-secondary transition-colors"
+                                        >
+                                          {isSaved ? <Check className="h-3.5 w-3.5 text-success" /> : <Save className="h-3.5 w-3.5 text-muted-foreground" />}
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+
+                                {ex.notes && <p className="text-xs text-muted-foreground italic">{ex.notes}</p>}
                                 {(ex as any).exercises?.instructions && (
                                   <details className="mt-1">
-                                    <summary className="text-[10px] text-primary cursor-pointer">
-                                      Instruktioner
-                                    </summary>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      {(ex as any).exercises.instructions}
-                                    </p>
+                                    <summary className="text-[10px] text-primary cursor-pointer">Instruktioner</summary>
+                                    <p className="text-xs text-muted-foreground mt-1">{(ex as any).exercises.instructions}</p>
                                   </details>
                                 )}
                               </div>
