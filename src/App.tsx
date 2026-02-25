@@ -12,6 +12,7 @@ import CoachClientDetail from "@/pages/coach/ClientDetail";
 import CoachCalls from "@/pages/coach/Calls";
 import CoachNewClient from "@/pages/coach/NewClient";
 import CoachSettings from "@/pages/coach/Settings";
+import CoachAnalytics from "@/pages/coach/Analytics";
 import ProgramBuilder from "@/pages/coach/ProgramBuilder";
 import NutritionBuilder from "@/pages/coach/NutritionBuilder";
 import ClientDashboard from "@/pages/client/Dashboard";
@@ -24,6 +25,8 @@ import ClientNutritionPlan from "@/pages/client/NutritionPlan";
 import ClientPhasePlan from "@/pages/client/PhasePlan";
 import ClientGoalsScore from "@/pages/client/GoalsScore";
 import ClientProgressPhotos from "@/pages/client/ProgressPhotos";
+import ClientResources from "@/pages/client/Resources";
+import ClientTransformation from "@/pages/client/Transformation";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -51,6 +54,7 @@ function AppRoutes() {
           <Route path="/coach/calls" element={<CoachCalls />} />
           <Route path="/coach/new-client" element={<CoachNewClient />} />
           <Route path="/coach/settings" element={<CoachSettings />} />
+          <Route path="/coach/analytics" element={<CoachAnalytics />} />
           <Route path="/coach/program-builder" element={<ProgramBuilder />} />
           <Route path="/coach/nutrition-builder" element={<NutritionBuilder />} />
         </Route>
@@ -73,6 +77,8 @@ function AppRoutes() {
         <Route path="/client/photos" element={<ClientProgressPhotos />} />
         <Route path="/client/messages" element={<ClientMessages />} />
         <Route path="/client/profile" element={<ClientProfile />} />
+        <Route path="/client/resources" element={<ClientResources />} />
+        <Route path="/client/transformation" element={<ClientTransformation />} />
       </Route>
       <Route path="/" element={<Navigate to="/client" replace />} />
       <Route path="*" element={<Navigate to="/client" replace />} />
