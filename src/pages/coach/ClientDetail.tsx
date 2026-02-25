@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -9,14 +9,20 @@ import ClientGoalsTab from '@/components/coach/ClientGoalsTab';
 import ClientHabitsTab from '@/components/coach/ClientHabitsTab';
 import ClientPhotosTab from '@/components/coach/ClientPhotosTab';
 import ClientMessagesTab from '@/components/coach/ClientMessagesTab';
+import ClientTrainingTab from '@/components/coach/ClientTrainingTab';
+import ClientNutritionTab from '@/components/coach/ClientNutritionTab';
+import ClientDocumentsTab from '@/components/coach/ClientDocumentsTab';
 
 const tabs = [
   { id: 'overview', label: 'Oversigt', icon: TrendingUp },
   { id: 'checkins', label: 'Check-ins', icon: FileText },
+  { id: 'training', label: 'Træning', icon: Dumbbell },
+  { id: 'nutrition', label: 'Kost', icon: UtensilsCrossed },
   { id: 'photos', label: 'Billeder', icon: Camera },
   { id: 'goals', label: 'Mål', icon: Target },
   { id: 'habits', label: 'Habits', icon: CheckSquare },
   { id: 'notes', label: 'Noter', icon: StickyNote },
+  { id: 'documents', label: 'Dokumenter', icon: FolderOpen },
   { id: 'messages', label: 'Beskeder', icon: MessageSquare },
 ];
 
@@ -86,6 +92,9 @@ export default function CoachClientDetail() {
       case 'habits': return <ClientHabitsTab clientId={id!} />;
       case 'photos': return <ClientPhotosTab clientId={id!} />;
       case 'messages': return <ClientMessagesTab clientId={id!} />;
+      case 'training': return <ClientTrainingTab clientId={id!} />;
+      case 'nutrition': return <ClientNutritionTab clientId={id!} />;
+      case 'documents': return <ClientDocumentsTab clientId={id!} />;
       case 'checkins': return renderCheckins();
       case 'overview': return renderOverview();
       default: return null;
