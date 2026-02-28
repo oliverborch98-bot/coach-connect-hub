@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard } from 'lucide-react';
+import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard, Send } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import ClientNotesTab from '@/components/coach/ClientNotesTab';
 import ClientGoalsTab from '@/components/coach/ClientGoalsTab';
 import ClientHabitsTab from '@/components/coach/ClientHabitsTab';
@@ -31,7 +32,10 @@ const tabs = [
 export default function CoachClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('overview');
+  const [feedbackMap, setFeedbackMap] = useState<Record<string, string>>({});
+  const [expandedCheckin, setExpandedCheckin] = useState<string | null>(null);
 
   const { data: client, isLoading } = useQuery({
     queryKey: ['client-detail', id],
@@ -60,6 +64,26 @@ export default function CoachClientDetail() {
       return data;
     },
     enabled: !!id,
+  });
+
+  const reviewMutation = useMutation({
+    mutationFn: async ({ checkinId, feedback }: { checkinId: string; feedback: string }) => {
+      const { error } = await supabase
+        .from('weekly_checkins')
+        .update({
+          coach_feedback: feedback,
+          status: 'reviewed' as const,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', checkinId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['client-checkins', id] });
+      toast.success('Feedback sendt!');
+      setExpandedCheckin(null);
+    },
+    onError: (err: any) => toast.error(err.message),
   });
 
   if (isLoading) {
@@ -165,42 +189,91 @@ export default function CoachClientDetail() {
   );
 
   const renderCheckins = () => (
-    <div className="rounded-xl border border-border bg-card p-5">
-      <h3 className="text-sm font-semibold mb-4">Check-in historik</h3>
-      {checkins.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Ingen check-ins endnu</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-border text-muted-foreground">
-                {['Uge', 'Dato', 'Vægt', 'Fedt%', 'Kcal', 'Træning', 'Energi', 'Søvn', 'Status'].map(h => (
-                  <th key={h} className={`py-2 font-medium ${h === 'Uge' || h === 'Dato' ? 'text-left' : 'text-right'}`}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {checkins.map(ci => (
-                <tr key={ci.id} className="border-b border-border last:border-0">
-                  <td className="py-2.5 font-medium">{ci.checkin_number}</td>
-                  <td className="py-2.5 text-muted-foreground">{ci.submitted_at ? new Date(ci.submitted_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' }) : '–'}</td>
-                  <td className="py-2.5 text-right">{ci.weight ?? '–'}</td>
-                  <td className="py-2.5 text-right">{ci.body_fat_pct ? `${ci.body_fat_pct}%` : '–'}</td>
-                  <td className="py-2.5 text-right">{ci.avg_calories ?? '–'}</td>
-                  <td className="py-2.5 text-right">{ci.workouts_completed ?? 0}/{ci.workouts_target ?? 4}</td>
-                  <td className="py-2.5 text-right">{ci.energy_level ? `${ci.energy_level}/10` : '–'}</td>
-                  <td className="py-2.5 text-right">{ci.sleep_quality ? `${ci.sleep_quality}/10` : '–'}</td>
-                  <td className="py-2.5 text-right">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${ci.status === 'reviewed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                      {ci.status === 'reviewed' ? 'Reviewed' : 'Submitted'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="text-sm font-semibold mb-4">Check-in historik</h3>
+        {checkins.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Ingen check-ins endnu</p>
+        ) : (
+          <div className="space-y-3">
+            {checkins.map(ci => {
+              const isExpanded = expandedCheckin === ci.id;
+              const feedback = feedbackMap[ci.id] ?? ci.coach_feedback ?? '';
+              return (
+                <div key={ci.id} className="rounded-xl border border-border bg-secondary/30 overflow-hidden">
+                  <button
+                    onClick={() => setExpandedCheckin(isExpanded ? null : ci.id)}
+                    className="w-full flex items-center justify-between p-4 text-left hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs bg-secondary px-2 py-1 rounded font-medium">#{ci.checkin_number}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {ci.submitted_at ? new Date(ci.submitted_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : '–'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs">
+                      <span>{ci.weight ?? '–'} kg</span>
+                      <span>{ci.avg_calories ?? '–'} kcal</span>
+                      <span>{ci.workouts_completed ?? 0}/{ci.workouts_target ?? 4}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${ci.status === 'reviewed' ? 'bg-primary/10 text-primary' : 'bg-warning/10 text-warning'}`}>
+                        {ci.status === 'reviewed' ? 'Reviewed' : 'Afventer review'}
+                      </span>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="border-t border-border p-4 space-y-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {[
+                          { label: 'Vægt', value: ci.weight ? `${ci.weight} kg` : '–' },
+                          { label: 'Fedt %', value: ci.body_fat_pct ? `${ci.body_fat_pct}%` : '–' },
+                          { label: 'Gns. kcal', value: ci.avg_calories ?? '–' },
+                          { label: 'Træning', value: `${ci.workouts_completed ?? 0}/${ci.workouts_target ?? 4}` },
+                          { label: 'Energi', value: ci.energy_level ? `${ci.energy_level}/10` : '–' },
+                          { label: 'Søvn', value: ci.sleep_quality ? `${ci.sleep_quality}/10` : '–' },
+                        ].map(s => (
+                          <div key={s.label} className="rounded-lg bg-secondary p-3">
+                            <p className="text-[10px] text-muted-foreground uppercase">{s.label}</p>
+                            <p className="text-sm font-semibold mt-0.5">{s.value}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      {ci.client_notes && (
+                        <div className="rounded-lg bg-secondary p-3">
+                          <p className="text-[10px] text-muted-foreground uppercase mb-1">Klientens noter</p>
+                          <p className="text-sm whitespace-pre-wrap">{ci.client_notes}</p>
+                        </div>
+                      )}
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium">Coach feedback</label>
+                        <textarea
+                          value={feedback}
+                          onChange={e => setFeedbackMap(prev => ({ ...prev, [ci.id]: e.target.value }))}
+                          placeholder="Skriv din feedback til klienten..."
+                          className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                          disabled={ci.status === 'reviewed' && !feedbackMap[ci.id]}
+                        />
+                        {ci.status !== 'reviewed' || feedbackMap[ci.id] ? (
+                          <button
+                            onClick={() => reviewMutation.mutate({ checkinId: ci.id, feedback: feedbackMap[ci.id] ?? feedback })}
+                            disabled={reviewMutation.isPending || !feedback.trim()}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            {reviewMutation.isPending ? 'Sender...' : ci.status === 'reviewed' ? 'Opdater feedback' : 'Send feedback & markér reviewed'}
+                          </button>
+                        ) : null}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 
