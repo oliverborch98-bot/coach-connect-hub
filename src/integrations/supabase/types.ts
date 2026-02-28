@@ -111,48 +111,57 @@ export type Database = {
       }
       client_profiles: {
         Row: {
+          binding_end: string | null
           coach_id: string
           created_at: string | null
+          current_month: number | null
           current_phase: string | null
-          current_week: number | null
-          end_date: string | null
           goal_weight: number | null
           id: string
-          package_type: string | null
+          is_re_sign: boolean | null
+          monthly_price: number | null
+          package_type: string
           primary_goal: string | null
-          start_date: string | null
           start_weight: number | null
-          status: Database["public"]["Enums"]["client_status"] | null
+          status: string | null
+          subscription_start: string
+          subscription_status: string | null
           user_id: string
         }
         Insert: {
+          binding_end?: string | null
           coach_id: string
           created_at?: string | null
+          current_month?: number | null
           current_phase?: string | null
-          current_week?: number | null
-          end_date?: string | null
           goal_weight?: number | null
           id?: string
-          package_type?: string | null
+          is_re_sign?: boolean | null
+          monthly_price?: number | null
+          package_type: string
           primary_goal?: string | null
-          start_date?: string | null
           start_weight?: number | null
-          status?: Database["public"]["Enums"]["client_status"] | null
+          status?: string | null
+          subscription_start: string
+          subscription_status?: string | null
           user_id: string
         }
         Update: {
+          binding_end?: string | null
           coach_id?: string
           created_at?: string | null
+          current_month?: number | null
           current_phase?: string | null
-          current_week?: number | null
-          end_date?: string | null
           goal_weight?: number | null
           id?: string
-          package_type?: string | null
+          is_re_sign?: boolean | null
+          monthly_price?: number | null
+          package_type?: string
           primary_goal?: string | null
-          start_date?: string | null
           start_weight?: number | null
-          status?: Database["public"]["Enums"]["client_status"] | null
+          status?: string | null
+          subscription_start?: string
+          subscription_status?: string | null
           user_id?: string
         }
         Relationships: [
@@ -174,21 +183,21 @@ export type Database = {
       }
       coach_notes: {
         Row: {
-          category: Database["public"]["Enums"]["note_category"] | null
+          category: string | null
           client_id: string
           content: string
           created_at: string | null
           id: string
         }
         Insert: {
-          category?: Database["public"]["Enums"]["note_category"] | null
+          category?: string | null
           client_id: string
           content: string
           created_at?: string | null
           id?: string
         }
         Update: {
-          category?: Database["public"]["Enums"]["note_category"] | null
+          category?: string | null
           client_id?: string
           content?: string
           created_at?: string | null
@@ -207,33 +216,36 @@ export type Database = {
       coaching_calls: {
         Row: {
           action_items: string | null
-          call_type: Database["public"]["Enums"]["call_type"] | null
+          call_type: string | null
           client_id: string
           duration_minutes: number | null
           id: string
+          is_facetime: boolean | null
           scheduled_at: string | null
           session_notes: string | null
-          status: Database["public"]["Enums"]["call_status"] | null
+          status: string | null
         }
         Insert: {
           action_items?: string | null
-          call_type?: Database["public"]["Enums"]["call_type"] | null
+          call_type?: string | null
           client_id: string
           duration_minutes?: number | null
           id?: string
+          is_facetime?: boolean | null
           scheduled_at?: string | null
           session_notes?: string | null
-          status?: Database["public"]["Enums"]["call_status"] | null
+          status?: string | null
         }
         Update: {
           action_items?: string | null
-          call_type?: Database["public"]["Enums"]["call_type"] | null
+          call_type?: string | null
           client_id?: string
           duration_minutes?: number | null
           id?: string
+          is_facetime?: boolean | null
           scheduled_at?: string | null
           session_notes?: string | null
-          status?: Database["public"]["Enums"]["call_status"] | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -312,26 +324,91 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          client_id: string
+          email_type: string | null
+          id: string
+          recipient_email: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string | null
+        }
+        Insert: {
+          client_id: string
+          email_type?: string | null
+          id?: string
+          recipient_email?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Update: {
+          client_id?: string
+          email_type?: string | null
+          id?: string
+          recipient_email?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
+          category: string | null
+          created_at: string | null
+          difficulty: string | null
+          equipment: string[] | null
+          form_cues: string[] | null
+          gif_url: string | null
           id: string
           instructions: string | null
-          muscle_group: string | null
+          is_custom: boolean | null
+          muscle_groups: string[] | null
           name: string
+          name_da: string | null
+          secondary_muscles: string[] | null
           video_url: string | null
         }
         Insert: {
+          category?: string | null
+          created_at?: string | null
+          difficulty?: string | null
+          equipment?: string[] | null
+          form_cues?: string[] | null
+          gif_url?: string | null
           id?: string
           instructions?: string | null
-          muscle_group?: string | null
+          is_custom?: boolean | null
+          muscle_groups?: string[] | null
           name: string
+          name_da?: string | null
+          secondary_muscles?: string[] | null
           video_url?: string | null
         }
         Update: {
+          category?: string | null
+          created_at?: string | null
+          difficulty?: string | null
+          equipment?: string[] | null
+          form_cues?: string[] | null
+          gif_url?: string | null
           id?: string
           instructions?: string | null
-          muscle_group?: string | null
+          is_custom?: boolean | null
+          muscle_groups?: string[] | null
           name?: string
+          name_da?: string | null
+          secondary_muscles?: string[] | null
           video_url?: string | null
         }
         Relationships: []
@@ -344,7 +421,7 @@ export type Database = {
           deadline: string | null
           id: string
           start_value: number | null
-          status: Database["public"]["Enums"]["goal_status"] | null
+          status: string | null
           target_value: number | null
           title: string
           unit: string | null
@@ -356,7 +433,7 @@ export type Database = {
           deadline?: string | null
           id?: string
           start_value?: number | null
-          status?: Database["public"]["Enums"]["goal_status"] | null
+          status?: string | null
           target_value?: number | null
           title: string
           unit?: string | null
@@ -368,7 +445,7 @@ export type Database = {
           deadline?: string | null
           id?: string
           start_value?: number | null
-          status?: Database["public"]["Enums"]["goal_status"] | null
+          status?: string | null
           target_value?: number | null
           title?: string
           unit?: string | null
@@ -420,7 +497,7 @@ export type Database = {
           fat_g: number | null
           id: string
           meal_name: string
-          meal_order: number
+          meal_order: number | null
           plan_id: string
           protein_g: number | null
         }
@@ -431,7 +508,7 @@ export type Database = {
           fat_g?: number | null
           id?: string
           meal_name: string
-          meal_order?: number
+          meal_order?: number | null
           plan_id: string
           protein_g?: number | null
         }
@@ -442,7 +519,7 @@ export type Database = {
           fat_g?: number | null
           id?: string
           meal_name?: string
-          meal_order?: number
+          meal_order?: number | null
           plan_id?: string
           protein_g?: number | null
         }
@@ -575,44 +652,53 @@ export type Database = {
         Row: {
           calories_target: number | null
           carbs_g: number | null
-          client_id: string
+          client_id: string | null
           created_at: string | null
+          email_sent: boolean | null
+          email_sent_at: string | null
           fat_g: number | null
           id: string
+          is_template: boolean | null
           meals_per_day: number | null
           name: string
           notes: string | null
-          phase: number | null
+          phase: string | null
           protein_g: number | null
-          status: string
+          status: string | null
         }
         Insert: {
           calories_target?: number | null
           carbs_g?: number | null
-          client_id: string
+          client_id?: string | null
           created_at?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
           fat_g?: number | null
           id?: string
+          is_template?: boolean | null
           meals_per_day?: number | null
           name: string
           notes?: string | null
-          phase?: number | null
+          phase?: string | null
           protein_g?: number | null
-          status?: string
+          status?: string | null
         }
         Update: {
           calories_target?: number | null
           carbs_g?: number | null
-          client_id?: string
+          client_id?: string | null
           created_at?: string | null
+          email_sent?: boolean | null
+          email_sent_at?: string | null
           fat_g?: number | null
           id?: string
+          is_template?: boolean | null
           meals_per_day?: number | null
           name?: string
           notes?: string | null
-          phase?: number | null
+          phase?: string | null
           protein_g?: number | null
-          status?: string
+          status?: string | null
         }
         Relationships: [
           {
@@ -624,39 +710,86 @@ export type Database = {
           },
         ]
       }
+      payment_events: {
+        Row: {
+          amount_dkk: number | null
+          client_id: string
+          created_at: string | null
+          event_type: string | null
+          failure_reason: string | null
+          id: string
+          invoice_pdf_url: string | null
+          status: string | null
+          stripe_event_id: string | null
+          stripe_invoice_id: string | null
+        }
+        Insert: {
+          amount_dkk?: number | null
+          client_id: string
+          created_at?: string | null
+          event_type?: string | null
+          failure_reason?: string | null
+          id?: string
+          invoice_pdf_url?: string | null
+          status?: string | null
+          stripe_event_id?: string | null
+          stripe_invoice_id?: string | null
+        }
+        Update: {
+          amount_dkk?: number | null
+          client_id?: string
+          created_at?: string | null
+          event_type?: string | null
+          failure_reason?: string | null
+          id?: string
+          invoice_pdf_url?: string | null
+          status?: string | null
+          stripe_event_id?: string | null
+          stripe_invoice_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       phases: {
         Row: {
           client_id: string
-          end_week: number | null
+          end_date: string | null
           focus_items: string[] | null
           id: string
           name: string | null
           phase_goals: string[] | null
           phase_number: number | null
-          start_week: number | null
-          status: Database["public"]["Enums"]["phase_status"] | null
+          start_date: string | null
+          status: string | null
         }
         Insert: {
           client_id: string
-          end_week?: number | null
+          end_date?: string | null
           focus_items?: string[] | null
           id?: string
           name?: string | null
           phase_goals?: string[] | null
           phase_number?: number | null
-          start_week?: number | null
-          status?: Database["public"]["Enums"]["phase_status"] | null
+          start_date?: string | null
+          status?: string | null
         }
         Update: {
           client_id?: string
-          end_week?: number | null
+          end_date?: string | null
           focus_items?: string[] | null
           id?: string
           name?: string | null
           phase_goals?: string[] | null
           phase_number?: number | null
-          start_week?: number | null
-          status?: Database["public"]["Enums"]["phase_status"] | null
+          start_date?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -703,25 +836,25 @@ export type Database = {
           client_id: string
           id: string
           image_url: string
-          photo_type: Database["public"]["Enums"]["photo_type"] | null
+          month_number: number | null
+          photo_type: string | null
           uploaded_at: string | null
-          week_number: number | null
         }
         Insert: {
           client_id: string
           id?: string
           image_url: string
-          photo_type?: Database["public"]["Enums"]["photo_type"] | null
+          month_number?: number | null
+          photo_type?: string | null
           uploaded_at?: string | null
-          week_number?: number | null
         }
         Update: {
           client_id?: string
           id?: string
           image_url?: string
-          photo_type?: Database["public"]["Enums"]["photo_type"] | null
+          month_number?: number | null
+          photo_type?: string | null
           uploaded_at?: string | null
-          week_number?: number | null
         }
         Relationships: [
           {
@@ -738,7 +871,7 @@ export type Database = {
           category: string | null
           content: string | null
           created_at: string | null
-          drip_unlock_week: number | null
+          drip_unlock_month: number | null
           icon: string | null
           id: string
           published: boolean | null
@@ -749,7 +882,7 @@ export type Database = {
           category?: string | null
           content?: string | null
           created_at?: string | null
-          drip_unlock_week?: number | null
+          drip_unlock_month?: number | null
           icon?: string | null
           id?: string
           published?: boolean | null
@@ -760,7 +893,7 @@ export type Database = {
           category?: string | null
           content?: string | null
           created_at?: string | null
-          drip_unlock_week?: number | null
+          drip_unlock_month?: number | null
           icon?: string | null
           id?: string
           published?: boolean | null
@@ -775,7 +908,7 @@ export type Database = {
           content: string | null
           created_at: string | null
           created_by: string | null
-          doc_type: string
+          doc_type: string | null
           id: string
           title: string
         }
@@ -784,7 +917,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           created_by?: string | null
-          doc_type?: string
+          doc_type?: string | null
           id?: string
           title: string
         }
@@ -793,7 +926,7 @@ export type Database = {
           content?: string | null
           created_at?: string | null
           created_by?: string | null
-          doc_type?: string
+          doc_type?: string | null
           id?: string
           title?: string
         }
@@ -814,6 +947,65 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          canceled_at: string | null
+          client_id: string
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          payment_method_brand: string | null
+          payment_method_last4: string | null
+          product_name: string | null
+          status: string | null
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          client_id: string
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          payment_method_brand?: string | null
+          payment_method_last4?: string | null
+          product_name?: string | null
+          status?: string | null
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          client_id?: string
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          payment_method_brand?: string | null
+          payment_method_last4?: string | null
+          product_name?: string | null
+          status?: string | null
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_days: {
         Row: {
           day_name: string
@@ -823,7 +1015,7 @@ export type Database = {
         }
         Insert: {
           day_name: string
-          day_order?: number
+          day_order: number
           id?: string
           program_id: string
         }
@@ -851,18 +1043,22 @@ export type Database = {
           notes: string | null
           reps: string | null
           rest_seconds: number | null
-          sets: number
+          rpe_target: number | null
+          sets: number | null
+          superset_group: string | null
           tempo: string | null
           training_day_id: string
         }
         Insert: {
           exercise_id: string
-          exercise_order?: number
+          exercise_order: number
           id?: string
           notes?: string | null
           reps?: string | null
           rest_seconds?: number | null
-          sets?: number
+          rpe_target?: number | null
+          sets?: number | null
+          superset_group?: string | null
           tempo?: string | null
           training_day_id: string
         }
@@ -873,7 +1069,9 @@ export type Database = {
           notes?: string | null
           reps?: string | null
           rest_seconds?: number | null
-          sets?: number
+          rpe_target?: number | null
+          sets?: number | null
+          superset_group?: string | null
           tempo?: string | null
           training_day_id?: string
         }
@@ -896,28 +1094,31 @@ export type Database = {
       }
       training_programs: {
         Row: {
-          client_id: string
+          client_id: string | null
           created_at: string | null
           id: string
+          is_template: boolean | null
           name: string
-          phase: number | null
-          status: string
+          phase: string | null
+          status: string | null
         }
         Insert: {
-          client_id: string
+          client_id?: string | null
           created_at?: string | null
           id?: string
+          is_template?: boolean | null
           name: string
-          phase?: number | null
-          status?: string
+          phase?: string | null
+          status?: string | null
         }
         Update: {
-          client_id?: string
+          client_id?: string | null
           created_at?: string | null
           id?: string
+          is_template?: boolean | null
           name?: string
-          phase?: number | null
-          status?: string
+          phase?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -933,6 +1134,7 @@ export type Database = {
         Row: {
           avg_calories: number | null
           body_fat_pct: number | null
+          checkin_number: number
           client_id: string
           client_notes: string | null
           coach_feedback: string | null
@@ -942,9 +1144,8 @@ export type Database = {
           id: string
           reviewed_at: string | null
           sleep_quality: number | null
-          status: Database["public"]["Enums"]["checkin_status"] | null
+          status: string | null
           submitted_at: string | null
-          week_number: number | null
           weight: number | null
           workouts_completed: number | null
           workouts_target: number | null
@@ -952,6 +1153,7 @@ export type Database = {
         Insert: {
           avg_calories?: number | null
           body_fat_pct?: number | null
+          checkin_number: number
           client_id: string
           client_notes?: string | null
           coach_feedback?: string | null
@@ -961,9 +1163,8 @@ export type Database = {
           id?: string
           reviewed_at?: string | null
           sleep_quality?: number | null
-          status?: Database["public"]["Enums"]["checkin_status"] | null
+          status?: string | null
           submitted_at?: string | null
-          week_number?: number | null
           weight?: number | null
           workouts_completed?: number | null
           workouts_target?: number | null
@@ -971,6 +1172,7 @@ export type Database = {
         Update: {
           avg_calories?: number | null
           body_fat_pct?: number | null
+          checkin_number?: number
           client_id?: string
           client_notes?: string | null
           coach_feedback?: string | null
@@ -980,9 +1182,8 @@ export type Database = {
           id?: string
           reviewed_at?: string | null
           sleep_quality?: number | null
-          status?: Database["public"]["Enums"]["checkin_status"] | null
+          status?: string | null
           submitted_at?: string | null
-          week_number?: number | null
           weight?: number | null
           workouts_completed?: number | null
           workouts_target?: number | null
@@ -1000,30 +1201,36 @@ export type Database = {
       workout_logs: {
         Row: {
           client_id: string
+          created_at: string | null
           date: string
           id: string
           notes: string | null
           reps_completed: number | null
+          rpe_actual: number | null
           set_number: number
           training_exercise_id: string
           weight_used: number | null
         }
         Insert: {
           client_id: string
+          created_at?: string | null
           date?: string
           id?: string
           notes?: string | null
           reps_completed?: number | null
+          rpe_actual?: number | null
           set_number: number
           training_exercise_id: string
           weight_used?: number | null
         }
         Update: {
           client_id?: string
+          created_at?: string | null
           date?: string
           id?: string
           notes?: string | null
           reps_completed?: number | null
+          rpe_actual?: number | null
           set_number?: number
           training_exercise_id?: string
           weight_used?: number | null
@@ -1053,25 +1260,6 @@ export type Database = {
       is_coach: { Args: never; Returns: boolean }
     }
     Enums: {
-      call_status: "scheduled" | "completed" | "cancelled" | "no_show"
-      call_type:
-        | "opstart"
-        | "uge2_tjek"
-        | "uge4_review"
-        | "uge8_review"
-        | "afslutning"
-        | "ekstra"
-      checkin_status: "pending" | "submitted" | "reviewed"
-      client_status: "active" | "paused" | "completed" | "cancelled"
-      goal_status: "active" | "achieved" | "failed"
-      note_category:
-        | "checkin"
-        | "call"
-        | "observation"
-        | "adjustment"
-        | "general"
-      phase_status: "locked" | "active" | "completed"
-      photo_type: "front" | "side" | "back"
       user_role: "coach" | "client"
     }
     CompositeTypes: {
@@ -1200,27 +1388,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      call_status: ["scheduled", "completed", "cancelled", "no_show"],
-      call_type: [
-        "opstart",
-        "uge2_tjek",
-        "uge4_review",
-        "uge8_review",
-        "afslutning",
-        "ekstra",
-      ],
-      checkin_status: ["pending", "submitted", "reviewed"],
-      client_status: ["active", "paused", "completed", "cancelled"],
-      goal_status: ["active", "achieved", "failed"],
-      note_category: [
-        "checkin",
-        "call",
-        "observation",
-        "adjustment",
-        "general",
-      ],
-      phase_status: ["locked", "active", "completed"],
-      photo_type: ["front", "side", "back"],
       user_role: ["coach", "client"],
     },
   },
