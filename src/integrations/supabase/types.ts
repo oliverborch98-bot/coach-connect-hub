@@ -1257,6 +1257,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_points: {
+        Args: { p_client_id: string; p_points: number }
+        Returns: undefined
+      }
       is_coach: { Args: never; Returns: boolean }
     }
     Enums: {
