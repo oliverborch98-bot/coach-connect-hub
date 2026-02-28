@@ -102,7 +102,7 @@ export default function ClientCheckIn() {
         <ClipboardCheck className="h-5 w-5 text-primary" />
         <h1 className="text-xl font-bold">Ugentlig Check-in</h1>
       </div>
-      <p className="text-sm text-muted-foreground">Uge {week} af 12</p>
+      <p className="text-sm text-muted-foreground">Uge {week} af 26</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">

@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
     // Create client profile
     const startDate = new Date();
-    const endDate = new Date(startDate.getTime() + 84 * 86400000);
+    const endDate = new Date(startDate.getTime() + 182 * 86400000);
 
     const { data: clientProfile, error: cpError } = await supabase
       .from("client_profiles")
@@ -90,9 +90,9 @@ Deno.serve(async (req) => {
 
     // Create phases
     await supabase.from("phases").insert([
-      { client_id: clientId, phase_number: 1, name: "Foundation", start_week: 1, end_week: 4, status: "active", focus_items: ["Lære at tracke korrekt", "Etablere træningsrutine"], phase_goals: ["Tracke mad hver dag", "Gennemføre alle træninger"] },
-      { client_id: clientId, phase_number: 2, name: "Acceleration", start_week: 5, end_week: 8, status: "locked" },
-      { client_id: clientId, phase_number: 3, name: "Transformation", start_week: 9, end_week: 12, status: "locked" },
+      { client_id: clientId, phase_number: 1, name: "Foundation", start_week: 1, end_week: 8, status: "active", focus_items: ["Lære at tracke korrekt", "Etablere træningsrutine"], phase_goals: ["Tracke mad hver dag", "Gennemføre alle træninger"] },
+      { client_id: clientId, phase_number: 2, name: "Acceleration", start_week: 9, end_week: 17, status: "locked" },
+      { client_id: clientId, phase_number: 3, name: "Transformation", start_week: 18, end_week: 26, status: "locked" },
     ]);
 
     // Create check-in slots

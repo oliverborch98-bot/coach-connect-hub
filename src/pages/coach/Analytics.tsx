@@ -46,7 +46,7 @@ export default function CoachAnalytics() {
 
   // Compliance per week chart
   const weekData: Record<number, { total: number; submitted: number }> = {};
-  for (let w = 0; w <= 12; w++) weekData[w] = { total: 0, submitted: 0 };
+  for (let w = 0; w <= 26; w++) weekData[w] = { total: 0, submitted: 0 };
   active.forEach(c => {
     const week = c.current_week ?? 0;
     for (let w = 0; w <= week; w++) {

@@ -107,7 +107,7 @@ export default function CoachClientDetail() {
         {[
           { label: 'Alder', value: `${age} år` },
           { label: 'Telefon', value: phone },
-          { label: 'Pakke', value: client.package_type ?? 'The Build Method 12 uger' },
+          { label: 'Pakke', value: client.package_type ?? 'The Build Method 6 måneder' },
           { label: 'Primært mål', value: client.primary_goal ?? '–' },
           { label: 'Startdato', value: client.start_date ? new Date(client.start_date).toLocaleDateString('da-DK') : '–' },
           { label: 'Status', value: client.status ?? 'active' },
@@ -212,7 +212,7 @@ export default function CoachClientDetail() {
           <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-lg font-bold">{initials}</div>
           <div>
             <h1 className="text-xl font-bold">{name}</h1>
-            <p className="text-sm text-muted-foreground">Uge {client.current_week ?? 0}/12 — {client.current_phase ?? 'Foundation'}</p>
+            <p className="text-sm text-muted-foreground">Uge {client.current_week ?? 0}/26 — {client.current_phase ?? 'Foundation'}</p>
           </div>
         </div>
         <div className="hidden md:flex gap-2">
