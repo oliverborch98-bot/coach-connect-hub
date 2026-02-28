@@ -48,7 +48,7 @@ export default function ProgramBuilder() {
 
   const [clientId, setClientId] = useState(preselectedClient);
   const [programName, setProgramName] = useState('');
-  const [phase, setPhase] = useState(1);
+  const [phase, setPhase] = useState('foundation');
   const [days, setDays] = useState<DayDraft[]>([emptyDay(0)]);
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [pickingForDay, setPickingForDay] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function ProgramBuilder() {
 
   const filteredExercises = exercises.filter((e: any) =>
     e.name.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
-    (e.muscle_group ?? '').toLowerCase().includes(exerciseSearch.toLowerCase())
+    (e.category ?? '').toLowerCase().includes(exerciseSearch.toLowerCase())
   );
 
   // Save mutation
@@ -196,12 +196,12 @@ export default function ProgramBuilder() {
           <label className="text-xs font-medium text-muted-foreground">Fase</label>
           <select
             value={phase}
-            onChange={e => setPhase(Number(e.target.value))}
+            onChange={e => setPhase(e.target.value)}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
-            <option value={1}>Fase 1 — Foundation</option>
-            <option value={2}>Fase 2 — Acceleration</option>
-            <option value={3}>Fase 3 — Transformation</option>
+            <option value="foundation">Foundation</option>
+            <option value="acceleration">Acceleration</option>
+            <option value="transformation">Transformation</option>
           </select>
         </div>
       </div>
@@ -270,7 +270,7 @@ export default function ProgramBuilder() {
                                   className="w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors flex justify-between"
                                 >
                                   <span>{exercise.name}</span>
-                                  <span className="text-muted-foreground">{exercise.muscle_group}</span>
+                                  <span className="text-muted-foreground">{exercise.category}</span>
                                 </button>
                               ))}
                               {filteredExercises.length === 0 && (

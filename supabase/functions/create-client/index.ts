@@ -53,12 +53,13 @@ Deno.serve(async (req) => {
       startWeight,
       goalWeight,
       primaryGoal,
+      packageType, // 'the_system' or 'build_method'
     } = body;
 
+    const monthlyPrice = packageType === "build_method" ? 1500 : 1000;
+
     // Generate a random password
-    const password =
-      crypto.randomUUID().slice(0, 12) +
-      "A1!";
+    const password = crypto.randomUUID().slice(0, 12) + "A1!";
 
     // Create auth user
     const { data: authData, error: authError } =
@@ -84,22 +85,26 @@ Deno.serve(async (req) => {
       .update({ phone, age: parseInt(age) || null })
       .eq("id", userId);
 
-    // Create client profile
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 182); // 26 weeks (6 months)
+    // Calculate binding end (6 months)
+    const subscriptionStart = new Date(startDate);
+    const bindingEnd = new Date(subscriptionStart);
+    bindingEnd.setMonth(bindingEnd.getMonth() + 6);
 
+    // Create client profile
     const { data: clientProfile, error: cpError } = await supabase
       .from("client_profiles")
       .insert({
         user_id: userId,
         coach_id: caller.id,
-        start_date: startDate,
-        end_date: endDate.toISOString().split("T")[0],
+        package_type: packageType,
+        subscription_start: startDate,
+        binding_end: bindingEnd.toISOString().split("T")[0],
+        monthly_price: monthlyPrice,
+        current_month: 1,
+        current_phase: "foundation",
         start_weight: parseFloat(startWeight) || null,
         goal_weight: parseFloat(goalWeight) || null,
         primary_goal: primaryGoal,
-        current_phase: "foundation",
-        current_week: 0,
         status: "active",
       })
       .select()
@@ -114,15 +119,20 @@ Deno.serve(async (req) => {
 
     const clientId = clientProfile.id;
 
-    // Create 3 phases (26 weeks total)
+    // Create 3 phases (date-based, only Build Method gets active phases)
+    const phase2Start = new Date(subscriptionStart);
+    phase2Start.setMonth(phase2Start.getMonth() + 2);
+    const phase3Start = new Date(subscriptionStart);
+    phase3Start.setMonth(phase3Start.getMonth() + 4);
+
     await supabase.from("phases").insert([
       {
         client_id: clientId,
         phase_number: 1,
         name: "Foundation",
-        start_week: 1,
-        end_week: 8,
-        status: "active",
+        start_date: startDate,
+        end_date: phase2Start.toISOString().split("T")[0],
+        status: packageType === "build_method" ? "active" : "locked",
         focus_items: [
           "Lære at tracke korrekt",
           "Etablere træningsrutine",
@@ -139,8 +149,8 @@ Deno.serve(async (req) => {
         client_id: clientId,
         phase_number: 2,
         name: "Acceleration",
-        start_week: 9,
-        end_week: 17,
+        start_date: phase2Start.toISOString().split("T")[0],
+        end_date: phase3Start.toISOString().split("T")[0],
         status: "locked",
         focus_items: [
           "Progressive overload i træning",
@@ -154,8 +164,8 @@ Deno.serve(async (req) => {
         client_id: clientId,
         phase_number: 3,
         name: "Transformation",
-        start_week: 18,
-        end_week: 26,
+        start_date: phase3Start.toISOString().split("T")[0],
+        end_date: bindingEnd.toISOString().split("T")[0],
         status: "locked",
         focus_items: [
           "Maksimal definition",
@@ -167,74 +177,35 @@ Deno.serve(async (req) => {
       },
     ]);
 
-    // Create 27 check-in slots (week 0-26)
-    const checkins = Array.from({ length: 27 }, (_, i) => ({
-      client_id: clientId,
-      week_number: i,
-      status: "pending" as const,
-    }));
-    await supabase.from("weekly_checkins").insert(checkins);
-
-    // Create 5 coaching calls
-    const sd = new Date(startDate);
-    await supabase.from("coaching_calls").insert([
-      {
-        client_id: clientId,
-        call_type: "opstart" as const,
-        scheduled_at: sd.toISOString(),
-        status: "scheduled" as const,
-        duration_minutes: 30,
-      },
-      {
-        client_id: clientId,
-        call_type: "uge2_tjek" as const,
-        scheduled_at: new Date(
-          sd.getTime() + 14 * 86400000
-        ).toISOString(),
-        status: "scheduled" as const,
-        duration_minutes: 30,
-      },
-      {
-        client_id: clientId,
-        call_type: "uge4_review" as const,
-        scheduled_at: new Date(
-          sd.getTime() + 28 * 86400000
-        ).toISOString(),
-        status: "scheduled" as const,
-        duration_minutes: 30,
-      },
-      {
-        client_id: clientId,
-        call_type: "uge8_review" as const,
-        scheduled_at: new Date(
-          sd.getTime() + 56 * 86400000
-        ).toISOString(),
-        status: "scheduled" as const,
-        duration_minutes: 30,
-      },
-      {
-        client_id: clientId,
-        call_type: "afslutning" as const,
-        scheduled_at: new Date(
-          sd.getTime() + 182 * 86400000
-        ).toISOString(),
-        status: "scheduled" as const,
-        duration_minutes: 30,
-      },
-    ]);
-
     // Create 5 standard habits
     await supabase.from("daily_habits").insert([
       { client_id: clientId, habit_name: "Drak 3L vand", habit_order: 1 },
       { client_id: clientId, habit_name: "Fulgte kostplan", habit_order: 2 },
       { client_id: clientId, habit_name: "Trænede i dag", habit_order: 3 },
       { client_id: clientId, habit_name: "8 timers søvn", habit_order: 4 },
-      {
-        client_id: clientId,
-        habit_name: "Supplement taget",
-        habit_order: 5,
-      },
+      { client_id: clientId, habit_name: "Supplement taget", habit_order: 5 },
     ]);
+
+    // Create kickoff call
+    await supabase.from("coaching_calls").insert({
+      client_id: clientId,
+      call_type: "kickoff",
+      scheduled_at: subscriptionStart.toISOString(),
+      status: "scheduled",
+      duration_minutes: 30,
+    });
+
+    // Create first pending check-in
+    await supabase.from("weekly_checkins").insert({
+      client_id: clientId,
+      checkin_number: 1,
+      status: "pending",
+    });
+
+    // Create accountability score
+    await supabase.from("accountability_scores").insert({
+      client_id: clientId,
+    });
 
     return new Response(
       JSON.stringify({

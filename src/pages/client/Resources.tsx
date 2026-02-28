@@ -22,13 +22,13 @@ export default function ClientResources() {
   const { data: resources = [], isLoading } = useQuery({
     queryKey: ['resources'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('resources').select('*').eq('published', true).order('drip_unlock_week');
+      const { data, error } = await supabase.from('resources').select('*').eq('published', true).order('drip_unlock_month');
       if (error) throw error;
       return data;
     },
   });
 
-  const currentWeek = clientProfile?.current_week ?? 0;
+  const currentMonth = clientProfile?.current_month ?? 1;
 
   if (isLoading) return <div className="flex items-center justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
@@ -55,7 +55,7 @@ export default function ClientResources() {
         </div>
       ) : (
         resources.map((r, i) => {
-          const unlocked = currentWeek >= (r.drip_unlock_week ?? 0);
+          const unlocked = currentMonth >= (r.drip_unlock_month ?? 0);
           return (
             <motion.button
               key={r.id}
@@ -71,7 +71,7 @@ export default function ClientResources() {
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">{r.title}</p>
-                {!unlocked && <p className="text-[10px] text-muted-foreground">Låses op i uge {r.drip_unlock_week}</p>}
+                {!unlocked && <p className="text-[10px] text-muted-foreground">Låses op i måned {r.drip_unlock_month}</p>}
                 {r.category && unlocked && <p className="text-[10px] text-muted-foreground">{r.category}</p>}
               </div>
             </motion.button>

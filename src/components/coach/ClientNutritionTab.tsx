@@ -36,10 +36,10 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('weekly_checkins')
-        .select('week_number, avg_calories')
+        .select('checkin_number, avg_calories')
         .eq('client_id', clientId)
         .in('status', ['submitted', 'reviewed'])
-        .order('week_number');
+        .order('checkin_number');
       if (error) throw error;
       return data;
     },
@@ -106,8 +106,8 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
             {checkins.filter(c => c.avg_calories).map(c => {
               const pct = plan.calories_target ? Math.round(((c.avg_calories ?? 0) / plan.calories_target) * 100) : 0;
               return (
-                <div key={c.week_number} className="flex items-center gap-3 text-xs">
-                  <span className="w-10 text-muted-foreground">Uge {c.week_number}</span>
+                <div key={c.checkin_number} className="flex items-center gap-3 text-xs">
+                  <span className="w-10 text-muted-foreground">#{c.checkin_number}</span>
                   <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${pct > 110 || pct < 90 ? 'bg-destructive' : 'bg-primary'}`} style={{ width: `${Math.min(pct, 100)}%` }} />
                   </div>

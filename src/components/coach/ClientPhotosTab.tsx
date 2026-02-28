@@ -13,7 +13,7 @@ export default function ClientPhotosTab({ clientId }: { clientId: string }) {
         .from('progress_photos')
         .select('*')
         .eq('client_id', clientId)
-        .order('week_number', { ascending: false });
+        .order('month_number', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -32,7 +32,7 @@ export default function ClientPhotosTab({ clientId }: { clientId: string }) {
 
   // Group by week
   const byWeek = photos.reduce<Record<number, typeof photos>>((acc, p) => {
-    const w = p.week_number ?? 0;
+    const w = p.month_number ?? 0;
     if (!acc[w]) acc[w] = [];
     acc[w].push(p);
     return acc;

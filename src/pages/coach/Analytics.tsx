@@ -10,7 +10,7 @@ export default function CoachAnalytics() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_profiles')
-        .select('id, status, current_week, start_weight, goal_weight, user_id, profiles!client_profiles_user_id_fkey(full_name)');
+        .select('id, status, current_month, start_weight, goal_weight, user_id, profiles!client_profiles_user_id_fkey(full_name)');
       if (error) throw error;
       return data as any[];
     },
@@ -21,9 +21,9 @@ export default function CoachAnalytics() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('weekly_checkins')
-        .select('client_id, week_number, weight, status')
+        .select('client_id, checkin_number, weight, status')
         .in('status', ['submitted', 'reviewed'])
-        .order('week_number');
+        .order('checkin_number');
       if (error) throw error;
       return data;
     },
@@ -35,7 +35,6 @@ export default function CoachAnalytics() {
   const completed = clients.filter(c => c.status === 'completed');
   const completionRate = clients.length > 0 ? Math.round((completed.length / clients.length) * 100) : 0;
 
-  // Avg weight loss
   const weightLosses = clients.map(c => {
     const sw = Number(c.start_weight) || 0;
     const clientCheckins = allCheckins.filter(ci => ci.client_id === c.id && ci.weight);
@@ -44,27 +43,29 @@ export default function CoachAnalytics() {
   }).filter(x => x !== 0);
   const avgWeightLoss = weightLosses.length > 0 ? (weightLosses.reduce((a, b) => a + b, 0) / weightLosses.length).toFixed(1) : '–';
 
-  // Compliance per week chart
-  const weekData: Record<number, { total: number; submitted: number }> = {};
-  for (let w = 0; w <= 26; w++) weekData[w] = { total: 0, submitted: 0 };
+  // Compliance per month
+  const monthData: Record<number, { total: number; submitted: number }> = {};
+  for (let m = 1; m <= 6; m++) monthData[m] = { total: 0, submitted: 0 };
   active.forEach(c => {
-    const week = c.current_week ?? 0;
-    for (let w = 0; w <= week; w++) {
-      weekData[w].total++;
-      if (allCheckins.some(ci => ci.client_id === c.id && ci.week_number === w)) weekData[w].submitted++;
+    const month = c.current_month ?? 1;
+    for (let m = 1; m <= month; m++) {
+      monthData[m].total++;
+      const expectedCheckins = m * 4;
+      const actualCheckins = allCheckins.filter(ci => ci.client_id === c.id && ci.checkin_number <= expectedCheckins).length;
+      if (actualCheckins >= expectedCheckins * 0.8) monthData[m].submitted++;
     }
   });
-  const chartData = Object.entries(weekData).map(([w, d]) => ({
-    week: `Uge ${w}`,
+  const chartData = Object.entries(monthData).map(([m, d]) => ({
+    month: `Md ${m}`,
     compliance: d.total > 0 ? Math.round((d.submitted / d.total) * 100) : 0,
   }));
 
-  // Client ranking
   const clientRanking = active.map(c => {
     const clientCheckins = allCheckins.filter(ci => ci.client_id === c.id);
-    const week = c.current_week ?? 1;
-    const compliance = week > 0 ? Math.round((clientCheckins.length / week) * 100) : 100;
-    return { name: c.profiles?.full_name ?? 'Ukendt', compliance: Math.min(compliance, 100), week };
+    const month = c.current_month ?? 1;
+    const expected = month * 4;
+    const compliance = expected > 0 ? Math.round((clientCheckins.length / expected) * 100) : 100;
+    return { name: c.profiles?.full_name ?? 'Ukendt', compliance: Math.min(compliance, 100), month };
   }).sort((a, b) => b.compliance - a.compliance);
 
   const topPerformers = clientRanking.filter(c => c.compliance >= 80);
@@ -94,10 +95,10 @@ export default function CoachAnalytics() {
       </div>
 
       <div className="rounded-xl border border-border bg-card p-5">
-        <h3 className="text-sm font-semibold mb-4">Compliance per uge (alle klienter)</h3>
+        <h3 className="text-sm font-semibold mb-4">Compliance per måned</h3>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={chartData}>
-            <XAxis dataKey="week" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+            <XAxis dataKey="month" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
             <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
             <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px', color: 'hsl(var(--foreground))' }} />
             <Line type="monotone" dataKey="compliance" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />

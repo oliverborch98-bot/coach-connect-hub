@@ -190,8 +190,8 @@ export default function ClientProfile() {
               <p className="capitalize">{clientProfile.status ?? '–'}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Uge</p>
-              <p>{clientProfile.current_week ?? 0}/26</p>
+              <p className="text-xs text-muted-foreground">Periode</p>
+              <p>Måned {clientProfile.current_month ?? 1}/6</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Fase</p>

@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion';
-import { Target, Zap, ArrowRight, Calendar, Loader2 } from 'lucide-react';
+import { Target, Zap, ArrowRight, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+const packageLabels: Record<string, string> = {
+  the_system: 'The System',
+  build_method: 'Build Method',
+};
 
 export default function ClientDashboard() {
   const navigate = useNavigate();
@@ -37,9 +42,10 @@ export default function ClientDashboard() {
     enabled: !!clientProfile,
   });
 
-  const week = clientProfile?.current_week ?? 0;
-  const phase = clientProfile?.current_phase ?? 'Foundation';
-  const phasePct = Math.round((week / 26) * 100);
+  const month = clientProfile?.current_month ?? 1;
+  const phase = clientProfile?.current_phase ?? 'foundation';
+  const packageType = (clientProfile as any)?.package_type ?? 'the_system';
+  const phasePct = Math.round((month / 6) * 100);
 
   // Next Friday for check-in
   const now = new Date();
@@ -55,12 +61,12 @@ export default function ClientDashboard() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground font-medium">Din fase</p>
+            <p className="text-xs text-muted-foreground font-medium">{packageLabels[packageType] ?? packageType}</p>
             <p className="text-lg font-bold text-primary capitalize">{phase}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-extrabold">{week}<span className="text-sm font-normal text-muted-foreground">/26</span></p>
-            <p className="text-xs text-muted-foreground">uger</p>
+            <p className="text-2xl font-extrabold">{month}<span className="text-sm font-normal text-muted-foreground">/6</span></p>
+            <p className="text-xs text-muted-foreground">måneder</p>
           </div>
         </div>
         <div className="h-2 bg-secondary rounded-full overflow-hidden">

@@ -24,7 +24,7 @@ export default function ClientTraining() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_profiles')
-        .select('id, current_phase, current_week')
+        .select('id, current_phase, current_month')
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
@@ -69,7 +69,7 @@ export default function ClientTraining() {
       if (dayIds.length === 0) return [];
       const { data, error } = await supabase
         .from('training_exercises')
-        .select('*, exercises(name, muscle_group, instructions, video_url)')
+        .select('*, exercises(name, category, muscle_groups, instructions, video_url)')
         .in('training_day_id', dayIds)
         .order('exercise_order', { ascending: true });
       if (error) throw error;
@@ -220,8 +220,8 @@ export default function ClientTraining() {
                                 <div className="flex items-start justify-between">
                                   <div>
                                     <p className="text-sm font-medium">{i + 1}. {(ex as any).exercises?.name ?? 'Øvelse'}</p>
-                                    {(ex as any).exercises?.muscle_group && (
-                                      <p className="text-[10px] text-muted-foreground capitalize">{(ex as any).exercises.muscle_group}</p>
+                                    {(ex as any).exercises?.category && (
+                                      <p className="text-[10px] text-muted-foreground capitalize">{(ex as any).exercises.category}</p>
                                     )}
                                   </div>
                                 </div>

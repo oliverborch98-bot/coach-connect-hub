@@ -34,7 +34,7 @@ export default function NutritionBuilder() {
 
   const [clientId, setClientId] = useState(preselectedClient);
   const [planName, setPlanName] = useState('');
-  const [phase, setPhase] = useState(1);
+  const [phase, setPhase] = useState('foundation');
   const [caloriesTarget, setCaloriesTarget] = useState<number | ''>('');
   const [proteinG, setProteinG] = useState<number | ''>('');
   const [carbsG, setCarbsG] = useState<number | ''>('');
@@ -150,12 +150,12 @@ export default function NutritionBuilder() {
           <label className="text-xs font-medium text-muted-foreground">Fase</label>
           <select
             value={phase}
-            onChange={e => setPhase(Number(e.target.value))}
+            onChange={e => setPhase(e.target.value)}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
           >
-            <option value={1}>Fase 1 — Foundation</option>
-            <option value={2}>Fase 2 — Acceleration</option>
-            <option value={3}>Fase 3 — Transformation</option>
+            <option value="foundation">Foundation</option>
+            <option value="acceleration">Acceleration</option>
+            <option value="transformation">Transformation</option>
           </select>
         </div>
       </div>
