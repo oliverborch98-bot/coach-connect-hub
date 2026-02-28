@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.customer-portal]
 verify_jwt = false
+
+[functions.send-nutrition-email]
+verify_jwt = false
+
+[functions.send-checkin-reminder]
+verify_jwt = false

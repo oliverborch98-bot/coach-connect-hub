@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
-import { Target, Zap, ArrowRight, Calendar } from 'lucide-react';
+import { Target, Zap, ArrowRight, Calendar, CreditCard, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 const packageLabels: Record<string, string> = {
   the_system: 'The System',
@@ -42,6 +44,20 @@ export default function ClientDashboard() {
     enabled: !!clientProfile,
   });
 
+  const { data: subscription } = useQuery({
+    queryKey: ['my-subscription', clientProfile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('client_id', clientProfile!.id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!clientProfile,
+  });
+
   const month = clientProfile?.current_month ?? 1;
   const phase = clientProfile?.current_phase ?? 'foundation';
   const packageType = (clientProfile as any)?.package_type ?? 'the_system';
@@ -55,10 +71,49 @@ export default function ClientDashboard() {
   nextFriday.setDate(now.getDate() + daysUntilFriday);
   const nextCheckinStr = nextFriday.toLocaleDateString('da-DK', { weekday: 'long', day: 'numeric', month: 'short' });
 
+  const subStatus = clientProfile?.subscription_status;
+  const isPastDue = subStatus === 'past_due';
+  const nextPayment = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
+
   return (
     <div className="space-y-5 max-w-lg mx-auto">
+      {/* Payment Status Widget */}
+      {isPastDue && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-center gap-3"
+        >
+          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-destructive">Betaling mangler</p>
+            <p className="text-xs text-muted-foreground">Din seneste betaling fejlede. Opdatér din betalingsmetode under profil.</p>
+          </div>
+          <button onClick={() => navigate('/client/profile')} className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-medium hover:bg-destructive/90 transition-colors shrink-0">
+            Løs
+          </button>
+        </motion.div>
+      )}
+
+      {/* Payment info widget */}
+      {!isPastDue && subscription && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-border bg-card p-4 flex items-center gap-3"
+        >
+          <CreditCard className="h-5 w-5 text-primary shrink-0" />
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground">Abonnement</p>
+            <p className="text-sm font-medium capitalize">{subscription.status === 'active' ? 'Aktivt' : subscription.status}</p>
+          </div>
+          {nextPayment && (
+            <div className="text-right">
+              <p className="text-[10px] text-muted-foreground">Næste betaling</p>
+              <p className="text-xs font-medium">{format(nextPayment, 'd. MMM', { locale: da })}</p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
       {/* Status Card */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-xl border border-border bg-card p-5 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-xs text-muted-foreground font-medium">{packageLabels[packageType] ?? packageType}</p>

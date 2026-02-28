@@ -1,8 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, UtensilsCrossed } from 'lucide-react';
+import { Loader2, UtensilsCrossed, Mail, Check } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ClientNutritionTab({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+
   const { data: plan, isLoading } = useQuery({
     queryKey: ['coach-client-nutrition', clientId],
     queryFn: async () => {
@@ -45,6 +49,22 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
     },
   });
 
+  const sendEmailMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('send-nutrition-email', {
+        body: { planId: plan!.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message ?? 'Email sendt!');
+      qc.invalidateQueries({ queryKey: ['coach-client-nutrition', clientId] });
+    },
+    onError: (err: any) => toast.error(err.message ?? 'Kunne ikke sende email'),
+  });
+
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>;
 
   if (!plan) {
@@ -59,8 +79,31 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4">
-        <h3 className="text-sm font-semibold">{plan.name}</h3>
-        {plan.notes && <p className="text-xs text-muted-foreground mt-1">{plan.notes}</p>}
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold">{plan.name}</h3>
+            {plan.notes && <p className="text-xs text-muted-foreground mt-1">{plan.notes}</p>}
+          </div>
+          <button
+            onClick={() => sendEmailMutation.mutate()}
+            disabled={sendEmailMutation.isPending}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
+          >
+            {sendEmailMutation.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : plan.email_sent ? (
+              <Check className="h-3.5 w-3.5" />
+            ) : (
+              <Mail className="h-3.5 w-3.5" />
+            )}
+            {plan.email_sent ? 'Send igen' : 'Send via email'}
+          </button>
+        </div>
+        {plan.email_sent && plan.email_sent_at && (
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Sidst sendt: {new Date(plan.email_sent_at).toLocaleString('da-DK')}
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-4 gap-3">
