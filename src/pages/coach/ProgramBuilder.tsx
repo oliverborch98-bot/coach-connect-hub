@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, GripVertical, Search, Loader2, Save, Dumbbell } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, GripVertical, Search, Loader2, Save, Dumbbell, Filter, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,6 +52,8 @@ export default function ProgramBuilder() {
   const [days, setDays] = useState<DayDraft[]>([emptyDay(0)]);
   const [exerciseSearch, setExerciseSearch] = useState('');
   const [pickingForDay, setPickingForDay] = useState<string | null>(null);
+  const [filterCategory, setFilterCategory] = useState('');
+  const [filterEquipment, setFilterEquipment] = useState('');
 
   // Fetch clients
   const { data: clients = [] } = useQuery({
@@ -76,10 +78,19 @@ export default function ProgramBuilder() {
     },
   });
 
-  const filteredExercises = exercises.filter((e: any) =>
-    e.name.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
-    (e.category ?? '').toLowerCase().includes(exerciseSearch.toLowerCase())
-  );
+  const categories = [...new Set(exercises.map((e: any) => e.category).filter(Boolean))].sort();
+  const equipmentList = [...new Set(exercises.flatMap((e: any) => e.equipment ?? []))].sort();
+
+  const filteredExercises = exercises.filter((e: any) => {
+    const matchesSearch = !exerciseSearch ||
+      e.name.toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+      (e.name_da ?? '').toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+      (e.category ?? '').toLowerCase().includes(exerciseSearch.toLowerCase()) ||
+      (e.muscle_groups ?? []).some((m: string) => m.toLowerCase().includes(exerciseSearch.toLowerCase()));
+    const matchesCategory = !filterCategory || e.category === filterCategory;
+    const matchesEquipment = !filterEquipment || (e.equipment ?? []).includes(filterEquipment);
+    return matchesSearch && matchesCategory && matchesEquipment;
+  });
 
   // Save mutation
   const saveMutation = useMutation({
@@ -262,20 +273,70 @@ export default function ProgramBuilder() {
                             className="w-full rounded-lg border border-border bg-background pl-8 pr-3 py-2 text-xs"
                           />
                           {pickingForDay === `${day.id}-${ex.id}` && (
-                            <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                              {filteredExercises.map((exercise: any) => (
-                                <button
-                                  key={exercise.id}
-                                  onClick={() => pickExercise(day.id, ex.id, exercise)}
-                                  className="w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors flex justify-between"
+                            <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg max-h-64 overflow-hidden flex flex-col" style={{ minWidth: 320 }}>
+                              {/* Filters */}
+                              <div className="flex gap-1.5 px-3 py-2 border-b border-border bg-secondary/20 flex-wrap">
+                                <select
+                                  value={filterCategory}
+                                  onChange={e => setFilterCategory(e.target.value)}
+                                  className="text-[10px] rounded border border-border bg-background px-1.5 py-1"
                                 >
-                                  <span>{exercise.name}</span>
-                                  <span className="text-muted-foreground">{exercise.category}</span>
-                                </button>
-                              ))}
-                              {filteredExercises.length === 0 && (
-                                <p className="px-3 py-2 text-xs text-muted-foreground">Ingen øvelser fundet</p>
-                              )}
+                                  <option value="">Alle kategorier</option>
+                                  {categories.map((c: string) => (
+                                    <option key={c} value={c}>{c}</option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={filterEquipment}
+                                  onChange={e => setFilterEquipment(e.target.value)}
+                                  className="text-[10px] rounded border border-border bg-background px-1.5 py-1"
+                                >
+                                  <option value="">Alt udstyr</option>
+                                  {equipmentList.map((eq: string) => (
+                                    <option key={eq} value={eq}>{eq}</option>
+                                  ))}
+                                </select>
+                                {(filterCategory || filterEquipment) && (
+                                  <button onClick={() => { setFilterCategory(''); setFilterEquipment(''); }} className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5">
+                                    <X className="h-3 w-3" /> Nulstil
+                                  </button>
+                                )}
+                              </div>
+                              {/* Results */}
+                              <div className="overflow-y-auto max-h-48">
+                                {filteredExercises.map((exercise: any) => (
+                                  <button
+                                    key={exercise.id}
+                                    onClick={() => pickExercise(day.id, ex.id, exercise)}
+                                    className="w-full text-left px-3 py-2 text-xs hover:bg-secondary transition-colors border-b border-border/30 last:border-0"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium">{exercise.name_da || exercise.name}</span>
+                                      <span className="text-[10px] text-muted-foreground capitalize">{exercise.category}</span>
+                                    </div>
+                                    {exercise.muscle_groups && (
+                                      <div className="flex gap-1 mt-0.5 flex-wrap">
+                                        {exercise.muscle_groups.slice(0, 3).map((mg: string) => (
+                                          <span key={mg} className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">{mg}</span>
+                                        ))}
+                                        {exercise.difficulty && (
+                                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
+                                            exercise.difficulty === 'advanced' ? 'bg-destructive/10 text-destructive' :
+                                            exercise.difficulty === 'intermediate' ? 'bg-accent text-accent-foreground' :
+                                            'bg-secondary text-secondary-foreground'
+                                          }`}>{exercise.difficulty}</span>
+                                        )}
+                                      </div>
+                                    )}
+                                  </button>
+                                ))}
+                                {filteredExercises.length === 0 && (
+                                  <p className="px-3 py-3 text-xs text-muted-foreground text-center">Ingen øvelser fundet</p>
+                                )}
+                              </div>
+                              <div className="px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
+                                {filteredExercises.length} øvelser
+                              </div>
                             </div>
                           )}
                         </div>
