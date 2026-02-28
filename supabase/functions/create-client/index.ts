@@ -13,6 +13,51 @@ const PRICES: Record<string, string> = {
   build_method: "price_1T5kVF5LYWI6qfnWPsdY3vEl",
 };
 
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+function buildWelcomeHtml(clientName: string, password: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:system-ui,-apple-system,sans-serif">
+  <div style="max-width:600px;margin:0 auto;background:#1a1a2e;border-radius:12px;overflow:hidden;margin-top:24px;margin-bottom:24px">
+    <div style="padding:24px 32px;border-bottom:2px solid #D4A853">
+      <h1 style="margin:0;color:#D4A853;font-size:20px;font-weight:700;letter-spacing:1px">BUILT BY BORCH</h1>
+    </div>
+    <div style="padding:32px;color:#e0e0e0;font-size:14px;line-height:1.6">
+      <h2 style="color:#D4A853;font-size:18px;margin-top:0">Velkommen til The Build Method! 🎉</h2>
+      <p>Hej ${clientName},</p>
+      <p>Velkommen ombord! Dit forløb starter nu, og jeg glæder mig til at hjælpe dig med at nå dine mål.</p>
+      
+      <div style="background:#252545;border-radius:10px;padding:20px;margin:24px 0">
+        <h3 style="color:#D4A853;font-size:14px;margin:0 0 12px">Dine login-oplysninger</h3>
+        <p style="margin:4px 0;color:#e0e0e0"><strong>Platform:</strong> builtbyborch.dk</p>
+        <p style="margin:4px 0;color:#e0e0e0"><strong>Midlertidigt password:</strong> ${password}</p>
+        <p style="margin:8px 0 0;color:#888;font-size:12px">Skift dit password efter første login.</p>
+      </div>
+
+      <h3 style="color:#D4A853;font-size:14px">Næste skridt:</h3>
+      <ol style="color:#ccc;padding-left:20px">
+        <li>Log ind og udfyld din onboarding</li>
+        <li>Gennemfør din betalingsopsætning</li>
+        <li>Book dit kickoff-kald med mig</li>
+      </ol>
+
+      <div style="text-align:center;margin:28px 0">
+        <a href="https://builtbyborch.dk/login" style="display:inline-block;padding:12px 32px;background:#D4A853;color:#1a1a2e;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px">Log ind nu</a>
+      </div>
+      
+      <p style="color:#888;font-size:13px">Har du spørgsmål? Skriv til mig direkte på platformen.</p>
+    </div>
+    <div style="padding:20px 32px;border-top:1px solid #2a2a4a;text-align:center">
+      <p style="margin:0;color:#666;font-size:11px">Oliver Borch · Built By Borch</p>
+      <p style="margin:4px 0 0;color:#555;font-size:10px">The Build Method Platform</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -213,6 +258,35 @@ Deno.serve(async (req) => {
       client_id: clientId,
     });
 
+    // Send welcome email via Resend
+    if (RESEND_API_KEY) {
+      try {
+        const res = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RESEND_API_KEY}`,
+          },
+          body: JSON.stringify({
+            from: "Built By Borch <oliver@builtbyborch.dk>",
+            to: [email],
+            subject: "Velkommen til The Build Method!",
+            html: buildWelcomeHtml(name, password),
+          }),
+        });
+
+        await supabase.from("email_logs").insert({
+          client_id: clientId,
+          email_type: "welcome",
+          recipient_email: email,
+          subject: "Velkommen til The Build Method!",
+          status: res.ok ? "sent" : "failed",
+        });
+      } catch (emailErr: any) {
+        console.error("Welcome email failed:", emailErr.message);
+      }
+    }
+
     // Create Stripe checkout session
     let checkoutUrl = null;
     try {
@@ -221,7 +295,6 @@ Deno.serve(async (req) => {
         const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
         const priceId = PRICES[packageType];
 
-        // Create or find Stripe customer
         const customers = await stripe.customers.list({ email, limit: 1 });
         let customerId: string;
         if (customers.data.length > 0) {
@@ -258,7 +331,6 @@ Deno.serve(async (req) => {
       }
     } catch (stripeErr: any) {
       console.error("Stripe checkout creation failed:", stripeErr.message);
-      // Don't fail the entire request if Stripe fails
     }
 
     return new Response(
