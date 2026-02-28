@@ -12,7 +12,6 @@ const navItems = [
   { to: '/coach/payments', icon: CreditCard, label: 'Betaling' },
   { to: '/coach/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/coach/settings', icon: Settings, label: 'Indstillinger' },
-  { to: '/coach/settings', icon: Settings, label: 'Indstillinger' },
 ];
 
 export default function CoachLayout() {
