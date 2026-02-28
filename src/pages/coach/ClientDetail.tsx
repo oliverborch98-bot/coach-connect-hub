@@ -53,7 +53,7 @@ export default function CoachClientDetail() {
         .select('*')
         .eq('client_id', id!)
         .in('status', ['submitted', 'reviewed'])
-        .order('week_number', { ascending: false });
+        .order('checkin_number', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -109,7 +109,7 @@ export default function CoachClientDetail() {
           { label: 'Telefon', value: phone },
           { label: 'Pakke', value: client.package_type ?? 'The Build Method 6 måneder' },
           { label: 'Primært mål', value: client.primary_goal ?? '–' },
-          { label: 'Startdato', value: client.start_date ? new Date(client.start_date).toLocaleDateString('da-DK') : '–' },
+          { label: 'Startdato', value: client.subscription_start ? new Date(client.subscription_start).toLocaleDateString('da-DK') : '–' },
           { label: 'Status', value: client.status ?? 'active' },
         ].map(item => (
           <div key={item.label} className="space-y-2">
@@ -140,7 +140,7 @@ export default function CoachClientDetail() {
             {checkins.slice(0, 4).map(ci => (
               <div key={ci.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs bg-secondary px-2 py-1 rounded font-medium">Uge {ci.week_number}</span>
+                  <span className="text-xs bg-secondary px-2 py-1 rounded font-medium">#{ci.checkin_number}</span>
                   <span className="text-xs text-muted-foreground">
                     {ci.submitted_at ? new Date(ci.submitted_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' }) : '–'}
                   </span>
@@ -179,7 +179,7 @@ export default function CoachClientDetail() {
             <tbody>
               {checkins.map(ci => (
                 <tr key={ci.id} className="border-b border-border last:border-0">
-                  <td className="py-2.5 font-medium">{ci.week_number}</td>
+                  <td className="py-2.5 font-medium">{ci.checkin_number}</td>
                   <td className="py-2.5 text-muted-foreground">{ci.submitted_at ? new Date(ci.submitted_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' }) : '–'}</td>
                   <td className="py-2.5 text-right">{ci.weight ?? '–'}</td>
                   <td className="py-2.5 text-right">{ci.body_fat_pct ? `${ci.body_fat_pct}%` : '–'}</td>
@@ -212,7 +212,7 @@ export default function CoachClientDetail() {
           <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center text-lg font-bold">{initials}</div>
           <div>
             <h1 className="text-xl font-bold">{name}</h1>
-            <p className="text-sm text-muted-foreground">Uge {client.current_week ?? 0}/26 — {client.current_phase ?? 'Foundation'}</p>
+            <p className="text-sm text-muted-foreground">Måned {client.current_month ?? 1}/6 — {client.current_phase ?? 'Foundation'}</p>
           </div>
         </div>
         <div className="hidden md:flex gap-2">

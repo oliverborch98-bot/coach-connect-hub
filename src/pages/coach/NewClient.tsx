@@ -10,6 +10,7 @@ export default function CoachNewClient() {
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', age: '',
     startDate: '', startWeight: '', goalWeight: '', primaryGoal: '',
+    packageType: 'the_system',
   });
 
   const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -80,8 +81,13 @@ export default function CoachNewClient() {
 
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-foreground">Pakke</label>
-          <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-            <option>The Build Method 6 måneder</option>
+          <select
+            value={formData.packageType}
+            onChange={e => update('packageType', e.target.value)}
+            className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="the_system">The System — 1.000 kr/md</option>
+            <option value="build_method">Build Method — 1.500 kr/md</option>
           </select>
         </div>
 

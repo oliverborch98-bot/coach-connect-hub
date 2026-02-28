@@ -12,7 +12,7 @@ export default function NutritionPlan() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('client_profiles')
-        .select('id, current_week')
+        .select('id, current_month')
         .eq('user_id', user!.id)
         .single();
       if (error) throw error;
