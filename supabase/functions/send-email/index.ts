@@ -12,7 +12,7 @@ export async function sendEmail(
   to: string,
   subject: string,
   html: string,
-  from = "Built By Borch <oliver@builtbyborch.dk>"
+  from = "Built By Borch <onboarding@resend.dev>"
 ): Promise<{ success: boolean; error?: string }> {
   if (!RESEND_API_KEY) {
     console.error("RESEND_API_KEY not set");

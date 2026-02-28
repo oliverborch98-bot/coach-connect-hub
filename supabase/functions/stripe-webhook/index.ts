@@ -78,7 +78,7 @@ async function sendPaymentFailedEmails(clientId: string, amountDkk: number) {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "Built By Borch <oliver@builtbyborch.dk>",
+          from: "Built By Borch <onboarding@resend.dev>",
           to: [clientEmail],
           subject: "Betalingsfejl — handling påkrævet",
           html: buildPaymentFailedHtml(clientName, amountDkk),
@@ -104,7 +104,7 @@ async function sendPaymentFailedEmails(clientId: string, amountDkk: number) {
           Authorization: `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "Built By Borch <noreply@builtbyborch.dk>",
+          from: "Built By Borch <onboarding@resend.dev>",
           to: [coachAuth.user.email],
           subject: `Betalingsfejl: ${clientName}`,
           html: `<!DOCTYPE html>

@@ -78,7 +78,7 @@ serve(async (req) => {
                 Authorization: `Bearer ${RESEND_API_KEY}`,
               },
               body: JSON.stringify({
-                from: "Built By Borch <oliver@builtbyborch.dk>",
+                from: "Built By Borch <onboarding@resend.dev>",
                 to: [authUser.user.email],
                 subject: "Husk din ugentlige check-in",
                 html: buildReminderHtml(clientName),

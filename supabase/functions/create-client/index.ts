@@ -268,7 +268,7 @@ Deno.serve(async (req) => {
             Authorization: `Bearer ${RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: "Built By Borch <oliver@builtbyborch.dk>",
+            from: "Built By Borch <onboarding@resend.dev>",
             to: [email],
             subject: "Velkommen til The Build Method!",
             html: buildWelcomeHtml(name, password),
