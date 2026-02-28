@@ -1,10 +1,16 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+const PRICES: Record<string, string> = {
+  the_system: "price_1T5kfz5LYWI6qfnW8zZkvbWw",
+  build_method: "price_1T5kVF5LYWI6qfnWPsdY3vEl",
 };
 
 Deno.serve(async (req) => {
@@ -53,7 +59,7 @@ Deno.serve(async (req) => {
       startWeight,
       goalWeight,
       primaryGoal,
-      packageType, // 'the_system' or 'build_method'
+      packageType,
     } = body;
 
     const monthlyPrice = packageType === "build_method" ? 1500 : 1000;
@@ -119,7 +125,7 @@ Deno.serve(async (req) => {
 
     const clientId = clientProfile.id;
 
-    // Create 3 phases (date-based, only Build Method gets active phases)
+    // Create 3 phases
     const phase2Start = new Date(subscriptionStart);
     phase2Start.setMonth(phase2Start.getMonth() + 2);
     const phase3Start = new Date(subscriptionStart);
@@ -207,11 +213,60 @@ Deno.serve(async (req) => {
       client_id: clientId,
     });
 
+    // Create Stripe checkout session
+    let checkoutUrl = null;
+    try {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+      if (stripeKey) {
+        const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+        const priceId = PRICES[packageType];
+
+        // Create or find Stripe customer
+        const customers = await stripe.customers.list({ email, limit: 1 });
+        let customerId: string;
+        if (customers.data.length > 0) {
+          customerId = customers.data[0].id;
+        } else {
+          const customer = await stripe.customers.create({
+            email,
+            name,
+            metadata: { client_profile_id: clientId },
+          });
+          customerId = customer.id;
+        }
+
+        const origin = req.headers.get("origin") || "https://builtbyborch.dk";
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId,
+          line_items: [{ price: priceId, quantity: 1 }],
+          mode: "subscription",
+          success_url: `${origin}/client?payment=success`,
+          cancel_url: `${origin}/client?payment=cancelled`,
+          metadata: {
+            client_profile_id: clientId,
+            package_type: packageType,
+          },
+          subscription_data: {
+            metadata: {
+              client_profile_id: clientId,
+              package_type: packageType,
+            },
+          },
+        });
+
+        checkoutUrl = session.url;
+      }
+    } catch (stripeErr: any) {
+      console.error("Stripe checkout creation failed:", stripeErr.message);
+      // Don't fail the entire request if Stripe fails
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
         clientId,
         password,
+        checkoutUrl,
       }),
       {
         status: 200,

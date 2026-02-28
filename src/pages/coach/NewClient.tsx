@@ -28,6 +28,10 @@ export default function CoachNewClient() {
       if (data?.error) throw new Error(data.error);
 
       toast.success(`Klient oprettet! Midlertidig adgangskode: ${data.password}`, { duration: 15000 });
+      if (data.checkoutUrl) {
+        toast.info('Betalingslink genereret — kopieret til udklipsholder', { duration: 5000 });
+        navigator.clipboard.writeText(data.checkoutUrl).catch(() => {});
+      }
       navigate('/coach');
     } catch (err: any) {
       toast.error(err.message || 'Fejl ved oprettelse af klient');
