@@ -12,11 +12,122 @@ const supabase = createClient(
   { auth: { persistSession: false } }
 );
 
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+function buildPaymentFailedHtml(clientName: string, amount: number): string {
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:system-ui,-apple-system,sans-serif">
+  <div style="max-width:600px;margin:0 auto;background:#1a1a2e;border-radius:12px;overflow:hidden;margin-top:24px;margin-bottom:24px">
+    <div style="padding:24px 32px;border-bottom:2px solid #D4A853">
+      <h1 style="margin:0;color:#D4A853;font-size:20px;font-weight:700;letter-spacing:1px">BUILT BY BORCH</h1>
+    </div>
+    <div style="padding:32px;color:#e0e0e0;font-size:14px;line-height:1.6">
+      <h2 style="color:#ff6b6b;font-size:18px;margin-top:0">Betalingsfejl</h2>
+      <p>Hej ${clientName},</p>
+      <p>Din seneste betaling på <strong>${amount} DKK</strong> kunne desværre ikke gennemføres.</p>
+      <p>Opdater venligst din betalingsmetode for at undgå afbrydelse af dit forløb.</p>
+      <div style="text-align:center;margin:28px 0">
+        <a href="https://builtbyborch.dk/client" style="display:inline-block;padding:12px 32px;background:#D4A853;color:#1a1a2e;text-decoration:none;border-radius:8px;font-weight:700;font-size:14px">Opdater betaling</a>
+      </div>
+      <p style="color:#888;font-size:13px">Har du spørgsmål? Kontakt mig direkte på platformen.</p>
+    </div>
+    <div style="padding:20px 32px;border-top:1px solid #2a2a4a;text-align:center">
+      <p style="margin:0;color:#666;font-size:11px">Oliver Borch · Built By Borch</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+async function sendPaymentFailedEmails(clientId: string, amountDkk: number) {
+  if (!RESEND_API_KEY) return;
+
+  try {
+    // Get client info
+    const { data: cp } = await supabase
+      .from("client_profiles")
+      .select("user_id, coach_id")
+      .eq("id", clientId)
+      .single();
+    if (!cp) return;
+
+    const { data: clientAuth } = await supabase.auth.admin.getUserById(cp.user_id);
+    const { data: clientProfile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", cp.user_id)
+      .single();
+
+    const clientEmail = clientAuth?.user?.email;
+    const clientName = clientProfile?.full_name ?? "Klient";
+
+    // Send to client
+    if (clientEmail) {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Built By Borch <oliver@builtbyborch.dk>",
+          to: [clientEmail],
+          subject: "Betalingsfejl — handling påkrævet",
+          html: buildPaymentFailedHtml(clientName, amountDkk),
+        }),
+      });
+
+      await supabase.from("email_logs").insert({
+        client_id: clientId,
+        email_type: "payment_failed",
+        recipient_email: clientEmail,
+        subject: "Betalingsfejl — handling påkrævet",
+        status: res.ok ? "sent" : "failed",
+      });
+    }
+
+    // Notify coach via email
+    const { data: coachAuth } = await supabase.auth.admin.getUserById(cp.coach_id);
+    if (coachAuth?.user?.email) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Built By Borch <noreply@builtbyborch.dk>",
+          to: [coachAuth.user.email],
+          subject: `Betalingsfejl: ${clientName}`,
+          html: `<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0f0f1a;font-family:system-ui,sans-serif">
+  <div style="max-width:600px;margin:24px auto;background:#1a1a2e;border-radius:12px;overflow:hidden">
+    <div style="padding:24px 32px;border-bottom:2px solid #D4A853">
+      <h1 style="margin:0;color:#D4A853;font-size:20px;letter-spacing:1px">BUILT BY BORCH</h1>
+    </div>
+    <div style="padding:32px;color:#e0e0e0;font-size:14px;line-height:1.6">
+      <h2 style="color:#ff6b6b;margin-top:0">Betalingsfejl for ${clientName}</h2>
+      <p>Beløb: <strong>${amountDkk} DKK</strong></p>
+      <p>Tjek betalingsoversigten for detaljer.</p>
+    </div>
+  </div>
+</body></html>`,
+        }),
+      });
+    }
+  } catch (err: any) {
+    console.error("Payment failed email error:", err.message);
+  }
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,7 +138,6 @@ serve(async (req) => {
     const body = await req.text();
     const sig = req.headers.get("stripe-signature");
 
-    // If webhook secret is set, verify signature
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     let event: Stripe.Event;
 
@@ -51,7 +161,6 @@ serve(async (req) => {
           const productId = subscription.items.data[0]?.price.product as string;
           const product = await stripe.products.retrieve(productId);
 
-          // Upsert subscription record
           await supabase.from("subscriptions").upsert({
             client_id: clientProfileId,
             stripe_customer_id: customerId,
@@ -63,13 +172,11 @@ serve(async (req) => {
             updated_at: new Date().toISOString(),
           }, { onConflict: "client_id" });
 
-          // Update client profile status
           await supabase
             .from("client_profiles")
             .update({ subscription_status: "active" })
             .eq("id", clientProfileId);
 
-          // Log payment event
           await supabase.from("payment_events").insert({
             client_id: clientProfileId,
             event_type: "checkout.session.completed",
@@ -86,7 +193,6 @@ serve(async (req) => {
         const subscriptionId = invoice.subscription as string;
         if (!subscriptionId) break;
 
-        // Find client by subscription
         const { data: sub } = await supabase
           .from("subscriptions")
           .select("client_id")
@@ -146,17 +252,19 @@ serve(async (req) => {
             .update({ subscription_status: "past_due" })
             .eq("id", sub.client_id);
 
+          const amountDkk = (invoice.amount_due || 0) / 100;
+
           await supabase.from("payment_events").insert({
             client_id: sub.client_id,
             stripe_invoice_id: invoice.id,
             stripe_event_id: event.id,
             event_type: "invoice.payment_failed",
-            amount_dkk: (invoice.amount_due || 0) / 100,
+            amount_dkk: amountDkk,
             status: "failed",
             failure_reason: invoice.last_finalization_error?.message || "Payment failed",
           });
 
-          // Notify coach
+          // Notify coach in-app
           const { data: coachProfile } = await supabase
             .from("client_profiles")
             .select("coach_id")
@@ -171,6 +279,9 @@ serve(async (req) => {
               body: `En klient har en mislykket betaling. Tjek betalingsoversigten.`,
             });
           }
+
+          // Send payment failed emails to client + coach
+          await sendPaymentFailedEmails(sub.client_id, amountDkk);
         }
         break;
       }
@@ -188,7 +299,6 @@ serve(async (req) => {
                          subscription.status === "past_due" ? "past_due" :
                          subscription.status === "canceled" ? "canceled" : subscription.status;
 
-          // Get payment method info
           let last4: string | null = null;
           let brand: string | null = null;
           if (subscription.default_payment_method) {
