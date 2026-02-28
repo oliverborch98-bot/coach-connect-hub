@@ -15,6 +15,7 @@ import CoachSettings from "@/pages/coach/Settings";
 import CoachAnalytics from "@/pages/coach/Analytics";
 import ProgramBuilder from "@/pages/coach/ProgramBuilder";
 import NutritionBuilder from "@/pages/coach/NutritionBuilder";
+import ExerciseLibrary from "@/pages/coach/ExerciseLibrary";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientCheckIn from "@/pages/client/CheckIn";
 import ClientHabits from "@/pages/client/Habits";
@@ -57,6 +58,7 @@ function AppRoutes() {
           <Route path="/coach/analytics" element={<CoachAnalytics />} />
           <Route path="/coach/program-builder" element={<ProgramBuilder />} />
           <Route path="/coach/nutrition-builder" element={<NutritionBuilder />} />
+          <Route path="/coach/exercises" element={<ExerciseLibrary />} />
         </Route>
         <Route path="/" element={<Navigate to="/coach" replace />} />
         <Route path="*" element={<Navigate to="/coach" replace />} />
