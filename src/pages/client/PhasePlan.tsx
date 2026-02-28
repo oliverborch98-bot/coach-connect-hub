@@ -49,7 +49,7 @@ export default function PhasePlan() {
     <div className="space-y-5">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-xl font-bold">Dit forløb</h1>
-        <p className="text-sm text-muted-foreground mt-1">Uge {currentWeek} af 12</p>
+        <p className="text-sm text-muted-foreground mt-1">Uge {currentWeek} af 26</p>
       </motion.div>
 
       {/* Timeline bar */}
@@ -62,14 +62,14 @@ export default function PhasePlan() {
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div
             className="h-full gold-gradient rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(100, (currentWeek / 12) * 100)}%` }}
+            style={{ width: `${Math.min(100, (currentWeek / 26) * 100)}%` }}
           />
         </div>
         <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
           <span>Uge 1</span>
-          <span>Uge 4</span>
           <span>Uge 8</span>
-          <span>Uge 12</span>
+          <span>Uge 17</span>
+          <span>Uge 26</span>
         </div>
       </motion.div>
 

@@ -81,7 +81,7 @@ export default function CoachNewClient() {
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-foreground">Pakke</label>
           <select className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary">
-            <option>The Build Method 12 uger</option>
+            <option>The Build Method 6 måneder</option>
           </select>
         </div>
 

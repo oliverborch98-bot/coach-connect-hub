@@ -191,7 +191,7 @@ export default function ClientProfile() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Uge</p>
-              <p>{clientProfile.current_week ?? 0}/12</p>
+              <p>{clientProfile.current_week ?? 0}/26</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Fase</p>

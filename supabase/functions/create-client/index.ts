@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
 
     // Create client profile
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 84); // 12 weeks
+    endDate.setDate(endDate.getDate() + 182); // 26 weeks (6 months)
 
     const { data: clientProfile, error: cpError } = await supabase
       .from("client_profiles")
@@ -114,14 +114,14 @@ Deno.serve(async (req) => {
 
     const clientId = clientProfile.id;
 
-    // Create 3 phases
+    // Create 3 phases (26 weeks total)
     await supabase.from("phases").insert([
       {
         client_id: clientId,
         phase_number: 1,
         name: "Foundation",
         start_week: 1,
-        end_week: 4,
+        end_week: 8,
         status: "active",
         focus_items: [
           "Lære at tracke korrekt",
@@ -139,8 +139,8 @@ Deno.serve(async (req) => {
         client_id: clientId,
         phase_number: 2,
         name: "Acceleration",
-        start_week: 5,
-        end_week: 8,
+        start_week: 9,
+        end_week: 17,
         status: "locked",
         focus_items: [
           "Progressive overload i træning",
@@ -154,8 +154,8 @@ Deno.serve(async (req) => {
         client_id: clientId,
         phase_number: 3,
         name: "Transformation",
-        start_week: 9,
-        end_week: 12,
+        start_week: 18,
+        end_week: 26,
         status: "locked",
         focus_items: [
           "Maksimal definition",
@@ -167,8 +167,8 @@ Deno.serve(async (req) => {
       },
     ]);
 
-    // Create 13 check-in slots (week 0-12)
-    const checkins = Array.from({ length: 13 }, (_, i) => ({
+    // Create 27 check-in slots (week 0-26)
+    const checkins = Array.from({ length: 27 }, (_, i) => ({
       client_id: clientId,
       week_number: i,
       status: "pending" as const,
@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
         client_id: clientId,
         call_type: "afslutning" as const,
         scheduled_at: new Date(
-          sd.getTime() + 84 * 86400000
+          sd.getTime() + 182 * 86400000
         ).toISOString(),
         status: "scheduled" as const,
         duration_minutes: 30,

@@ -39,7 +39,7 @@ export default function ClientDashboard() {
 
   const week = clientProfile?.current_week ?? 0;
   const phase = clientProfile?.current_phase ?? 'Foundation';
-  const phasePct = Math.round((week / 12) * 100);
+  const phasePct = Math.round((week / 26) * 100);
 
   // Next Friday for check-in
   const now = new Date();
@@ -59,7 +59,7 @@ export default function ClientDashboard() {
             <p className="text-lg font-bold text-primary capitalize">{phase}</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-extrabold">{week}<span className="text-sm font-normal text-muted-foreground">/12</span></p>
+            <p className="text-2xl font-extrabold">{week}<span className="text-sm font-normal text-muted-foreground">/26</span></p>
             <p className="text-xs text-muted-foreground">uger</p>
           </div>
         </div>

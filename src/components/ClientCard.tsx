@@ -38,7 +38,7 @@ export default function ClientCard({ id, name, week, compliance, lastCheckin, st
           <p className="text-xs text-muted-foreground">Seneste check-in: {lastCheckin}</p>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-xs text-muted-foreground">Uge {week}/12</div>
+          <div className="text-xs text-muted-foreground">Uge {week}/26</div>
           <div className={`text-sm font-semibold ${complianceColor}`}>{compliance}%</div>
         </div>
       </div>
