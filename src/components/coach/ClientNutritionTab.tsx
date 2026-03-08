@@ -1,34 +1,34 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, UtensilsCrossed, Mail, Check } from 'lucide-react';
+import { Loader2, UtensilsCrossed, Mail, Check, Pencil, Trash2, Copy, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ClientNutritionTab({ clientId }: { clientId: string }) {
+  const navigate = useNavigate();
   const qc = useQueryClient();
+  const [showAll, setShowAll] = useState(false);
 
-  const { data: plan, isLoading } = useQuery({
-    queryKey: ['coach-client-nutrition', clientId],
+  const { data: plans = [], isLoading } = useQuery({
+    queryKey: ['coach-client-nutrition-all', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('nutrition_plans')
         .select('*')
         .eq('client_id', clientId)
-        .eq('status', 'active')
-        .single();
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
+  const plan = plans.find(p => p.status === 'active') ?? plans[0];
+
   const { data: meals = [] } = useQuery({
     queryKey: ['coach-client-meals', plan?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('meals')
-        .select('*')
-        .eq('plan_id', plan!.id)
-        .order('meal_order');
+      const { data, error } = await supabase.from('meals').select('*').eq('plan_id', plan!.id).order('meal_order');
       if (error) throw error;
       return data;
     },
@@ -38,12 +38,7 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
   const { data: checkins = [] } = useQuery({
     queryKey: ['coach-client-kcal-checkins', clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('weekly_checkins')
-        .select('checkin_number, avg_calories')
-        .eq('client_id', clientId)
-        .in('status', ['submitted', 'reviewed'])
-        .order('checkin_number');
+      const { data, error } = await supabase.from('weekly_checkins').select('checkin_number, avg_calories').eq('client_id', clientId).in('status', ['submitted', 'reviewed']).order('checkin_number');
       if (error) throw error;
       return data;
     },
@@ -51,18 +46,62 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('send-nutrition-email', {
-        body: { planId: plan!.id },
-      });
+      const { data, error } = await supabase.functions.invoke('send-nutrition-email', { body: { planId: plan!.id } });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: (data) => {
       toast.success(data.message ?? 'Email sendt!');
-      qc.invalidateQueries({ queryKey: ['coach-client-nutrition', clientId] });
+      qc.invalidateQueries({ queryKey: ['coach-client-nutrition-all', clientId] });
     },
     onError: (err: any) => toast.error(err.message ?? 'Kunne ikke sende email'),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      await supabase.from('meals').delete().eq('plan_id', planId);
+      await supabase.from('nutrition_plans').delete().eq('id', planId);
+    },
+    onSuccess: () => {
+      toast.success('Kostplan slettet');
+      qc.invalidateQueries({ queryKey: ['coach-client-nutrition-all', clientId] });
+    },
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      await supabase.from('nutrition_plans').update({ status: 'archived' }).eq('id', planId);
+    },
+    onSuccess: () => {
+      toast.success('Kostplan arkiveret');
+      qc.invalidateQueries({ queryKey: ['coach-client-nutrition-all', clientId] });
+    },
+  });
+
+  const duplicateMutation = useMutation({
+    mutationFn: async (planId: string) => {
+      const src = plans.find(p => p.id === planId);
+      if (!src) return;
+      const { data: newPlan } = await supabase.from('nutrition_plans').insert({
+        client_id: clientId, name: `${src.name} (kopi)`, phase: src.phase, status: 'active',
+        calories_target: src.calories_target, protein_g: src.protein_g, carbs_g: src.carbs_g,
+        fat_g: src.fat_g, notes: src.notes, meals_per_day: src.meals_per_day,
+      }).select('id').single();
+      if (!newPlan) return;
+      const { data: srcMeals } = await supabase.from('meals').select('*').eq('plan_id', planId).order('meal_order');
+      if (srcMeals?.length) {
+        await supabase.from('meals').insert(srcMeals.map(m => ({
+          plan_id: newPlan.id, meal_name: m.meal_name, meal_order: m.meal_order,
+          description: m.description, calories: m.calories, protein_g: m.protein_g,
+          carbs_g: m.carbs_g, fat_g: m.fat_g, recipe_id: m.recipe_id,
+        })));
+      }
+    },
+    onSuccess: () => {
+      toast.success('Kostplan duplikeret');
+      qc.invalidateQueries({ queryKey: ['coach-client-nutrition-all', clientId] });
+    },
   });
 
   if (isLoading) return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>;
@@ -76,6 +115,8 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
     );
   }
 
+  const otherPlans = plans.filter(p => p.id !== plan.id);
+
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-4">
@@ -84,25 +125,32 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
             <h3 className="text-sm font-semibold">{plan.name}</h3>
             {plan.notes && <p className="text-xs text-muted-foreground mt-1">{plan.notes}</p>}
           </div>
-          <button
-            onClick={() => sendEmailMutation.mutate()}
-            disabled={sendEmailMutation.isPending}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50"
-          >
-            {sendEmailMutation.isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : plan.email_sent ? (
-              <Check className="h-3.5 w-3.5" />
-            ) : (
-              <Mail className="h-3.5 w-3.5" />
-            )}
-            {plan.email_sent ? 'Send igen' : 'Send via email'}
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={() => sendEmailMutation.mutate()} disabled={sendEmailMutation.isPending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-xs font-medium hover:bg-primary/20 transition-colors disabled:opacity-50">
+              {sendEmailMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : plan.email_sent ? <Check className="h-3.5 w-3.5" /> : <Mail className="h-3.5 w-3.5" />}
+              {plan.email_sent ? 'Send igen' : 'Send via email'}
+            </button>
+            <button onClick={() => navigate(`/coach/nutrition-builder?edit=${plan.id}`)}
+              className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Redigér">
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => duplicateMutation.mutate(plan.id)}
+              className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Duplikér">
+              <Copy className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => archiveMutation.mutate(plan.id)}
+              className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Arkivér">
+              <Archive className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={() => { if (confirm('Slet kostplan permanent?')) deleteMutation.mutate(plan.id); }}
+              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Slet">
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
         {plan.email_sent && plan.email_sent_at && (
-          <p className="text-[10px] text-muted-foreground mt-2">
-            Sidst sendt: {new Date(plan.email_sent_at).toLocaleString('da-DK')}
-          </p>
+          <p className="text-[10px] text-muted-foreground mt-2">Sidst sendt: {new Date(plan.email_sent_at).toLocaleString('da-DK')}</p>
         )}
       </div>
 
@@ -159,6 +207,34 @@ export default function ClientNutritionTab({ clientId }: { clientId: string }) {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {otherPlans.length > 0 && (
+        <div>
+          <button onClick={() => setShowAll(!showAll)} className="text-xs text-muted-foreground hover:text-foreground mb-2">
+            {showAll ? 'Skjul' : `Vis ${otherPlans.length} andre planer`}
+          </button>
+          {showAll && (
+            <div className="space-y-2">
+              {otherPlans.map(p => (
+                <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+                  <div>
+                    <p className="text-sm font-medium">{p.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{p.phase ?? '–'} · {p.status}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => navigate(`/coach/nutrition-builder?edit=${p.id}`)}
+                      className="p-1.5 rounded hover:bg-secondary text-muted-foreground"><Pencil className="h-3 w-3" /></button>
+                    <button onClick={() => duplicateMutation.mutate(p.id)}
+                      className="p-1.5 rounded hover:bg-secondary text-muted-foreground"><Copy className="h-3 w-3" /></button>
+                    <button onClick={() => { if (confirm('Slet?')) deleteMutation.mutate(p.id); }}
+                      className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"><Trash2 className="h-3 w-3" /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
