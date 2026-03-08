@@ -135,6 +135,20 @@ export default function ClientDashboard() {
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div className="h-full gold-gradient rounded-full transition-all" style={{ width: `${phasePct}%` }} />
         </div>
+
+        {/* Program end date */}
+        {clientProfile?.binding_end && (
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-3.5 w-3.5" />
+              Forløb slutter: <span className="text-foreground font-medium">{format(new Date(clientProfile.binding_end), 'd. MMMM yyyy', { locale: da })}</span>
+            </div>
+            <span className="text-foreground font-medium">
+              {Math.max(0, Math.ceil((new Date(clientProfile.binding_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} dage tilbage
+            </span>
+          </div>
+        )}
+
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar className="h-3.5 w-3.5" />
           Næste check-in: <span className="text-foreground font-medium">{nextCheckinStr}</span>
