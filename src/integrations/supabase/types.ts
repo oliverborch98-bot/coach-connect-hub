@@ -73,6 +73,68 @@ export type Database = {
         }
         Relationships: []
       }
+      body_measurements: {
+        Row: {
+          body_fat_pct: number | null
+          chest_cm: number | null
+          client_id: string
+          created_at: string | null
+          date: string
+          hips_cm: number | null
+          id: string
+          left_arm_cm: number | null
+          left_thigh_cm: number | null
+          notes: string | null
+          right_arm_cm: number | null
+          right_thigh_cm: number | null
+          shoulders_cm: number | null
+          waist_cm: number | null
+          weight: number | null
+        }
+        Insert: {
+          body_fat_pct?: number | null
+          chest_cm?: number | null
+          client_id: string
+          created_at?: string | null
+          date?: string
+          hips_cm?: number | null
+          id?: string
+          left_arm_cm?: number | null
+          left_thigh_cm?: number | null
+          notes?: string | null
+          right_arm_cm?: number | null
+          right_thigh_cm?: number | null
+          shoulders_cm?: number | null
+          waist_cm?: number | null
+          weight?: number | null
+        }
+        Update: {
+          body_fat_pct?: number | null
+          chest_cm?: number | null
+          client_id?: string
+          created_at?: string | null
+          date?: string
+          hips_cm?: number | null
+          id?: string
+          left_arm_cm?: number | null
+          left_thigh_cm?: number | null
+          notes?: string | null
+          right_arm_cm?: number | null
+          right_thigh_cm?: number | null
+          shoulders_cm?: number | null
+          waist_cm?: number | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "body_measurements_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_badges: {
         Row: {
           badge_id: string

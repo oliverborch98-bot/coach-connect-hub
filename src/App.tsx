@@ -33,6 +33,7 @@ import ClientNutritionPlan from "@/pages/client/NutritionPlan";
 import ClientPhasePlan from "@/pages/client/PhasePlan";
 import ClientGoalsScore from "@/pages/client/GoalsScore";
 import ClientProgressPhotos from "@/pages/client/ProgressPhotos";
+import ClientBodyMeasurements from "@/pages/client/BodyMeasurements";
 import ClientResources from "@/pages/client/Resources";
 import ClientTransformation from "@/pages/client/Transformation";
 import ClientAIChat from "@/pages/client/AIChat";
@@ -145,6 +146,7 @@ function ClientRoutes() {
         <Route path="/client/checkin" element={<ClientCheckIn />} />
         <Route path="/client/habits" element={<ClientHabits />} />
         <Route path="/client/photos" element={<ClientProgressPhotos />} />
+        <Route path="/client/measurements" element={<ClientBodyMeasurements />} />
         <Route path="/client/messages" element={<ClientMessages />} />
         <Route path="/client/profile" element={<ClientProfile />} />
         <Route path="/client/resources" element={<ClientResources />} />
