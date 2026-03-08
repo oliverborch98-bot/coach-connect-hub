@@ -337,6 +337,23 @@ export default function ClientProfile() {
         </div>
       )}
 
+      {/* Install app */}
+      <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          📱 Installér som app
+        </h2>
+        <div className="space-y-2 text-sm text-muted-foreground">
+          <div>
+            <p className="font-medium text-foreground">iPhone</p>
+            <p>Åbn linket i Safari → Del-knap → "Føj til hjemmeskærm"</p>
+          </div>
+          <div>
+            <p className="font-medium text-foreground">Android</p>
+            <p>Åbn i Chrome → browsermenu → "Installer app"</p>
+          </div>
+        </div>
+      </div>
+
       {/* Logout */}
       <button
         onClick={signOut}
