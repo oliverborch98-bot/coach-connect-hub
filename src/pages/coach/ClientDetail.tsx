@@ -1,4 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard, ClipboardList, Ruler } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -139,6 +141,8 @@ export default function CoachClientDetail() {
           { label: 'Pakke', value: client.package_type ?? 'The Build Method 6 måneder' },
           { label: 'Primært mål', value: client.primary_goal ?? '–' },
           { label: 'Startdato', value: client.subscription_start ? new Date(client.subscription_start).toLocaleDateString('da-DK') : '–' },
+          { label: 'Slutdato', value: client.binding_end ? format(new Date(client.binding_end), 'd. MMMM yyyy', { locale: da }) : '–' },
+          { label: 'Dage tilbage', value: client.binding_end ? `${Math.max(0, Math.ceil((new Date(client.binding_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} dage` : '–' },
           { label: 'Status', value: client.status ?? 'active' },
         ].map(item => (
           <div key={item.label} className="space-y-2">
