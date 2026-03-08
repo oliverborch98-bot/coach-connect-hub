@@ -66,6 +66,18 @@ export default function CoachClientDetail() {
   });
 
 
+  const { data: onboarding } = useQuery({
+    queryKey: ['client-onboarding', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('onboarding_responses')
+        .select('*')
+        .eq('client_id', id!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id,
+  });
 
   if (isLoading) {
     return (
@@ -109,19 +121,6 @@ export default function CoachClientDetail() {
       default: return null;
     }
   };
-
-  const { data: onboarding } = useQuery({
-    queryKey: ['client-onboarding', id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('onboarding_responses')
-        .select('*')
-        .eq('client_id', id!)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!id,
-  });
 
   const goalLabels: Record<string, string> = {
     fat_loss: '🔥 Fedttab',
