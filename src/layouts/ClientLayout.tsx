@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell, Utensils, Layers, Target, Camera, BookOpen, Sparkles, Bot, Ruler, LogOut, Trophy } from 'lucide-react';
+import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell, Utensils, Layers, Target, Camera, BookOpen, Sparkles, Bot, Ruler, LogOut, Trophy, HelpCircle } from 'lucide-react';
 import NotificationBell from '@/components/NotificationBell';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +19,7 @@ const navItems = [
   { to: '/client/transformation', icon: Sparkles, label: 'Transformation' },
   { to: '/client/ai', icon: Bot, label: 'AI Chat' },
   { to: '/client/leaderboard', icon: Trophy, label: 'Rangliste' },
+  { to: '/client/guide', icon: HelpCircle, label: 'Guide' },
   { to: '/client/messages', icon: MessageSquare, label: 'Beskeder', badge: true },
   { to: '/client/profile', icon: User, label: 'Profil' },
 ];
