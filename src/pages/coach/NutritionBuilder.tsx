@@ -154,6 +154,11 @@ export default function NutritionBuilder() {
           <h1 className="text-xl font-bold">Ny Kostplan</h1>
           <p className="text-sm text-muted-foreground">Opret makromål og måltider til en klient</p>
         </div>
+        <button onClick={generateWithAI} disabled={aiLoading || !clientId}
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+          {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {aiLoading ? 'Genererer...' : 'Generér med AI'}
+        </button>
       </div>
 
       {/* Meta */}

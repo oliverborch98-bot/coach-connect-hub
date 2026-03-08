@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, GripVertical, Search, Loader2, Save, Dumbbell, Filter, X } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, GripVertical, Search, Loader2, Save, Dumbbell, Filter, X, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
