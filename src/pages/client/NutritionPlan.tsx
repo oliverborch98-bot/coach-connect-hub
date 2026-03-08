@@ -1,11 +1,18 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Utensils, Flame, Beef, Wheat, Droplets } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Loader2, Utensils, Flame, Beef, Wheat, Droplets, ChefHat, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface Ingredient {
+  name: string;
+  amount: string;
+}
 
 export default function NutritionPlan() {
   const { user } = useAuth();
+  const [expandedMeal, setExpandedMeal] = useState<string | null>(null);
 
   const { data: clientProfile } = useQuery({
     queryKey: ['client-profile', user?.id],
@@ -50,6 +57,23 @@ export default function NutritionPlan() {
     enabled: !!plan,
   });
 
+  // Fetch recipes linked to meals
+  const recipeIds = meals.map(m => (m as any).recipe_id).filter(Boolean) as string[];
+  const { data: recipes = [] } = useQuery({
+    queryKey: ['meal-recipes', recipeIds],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .in('id', recipeIds);
+      if (error) throw error;
+      return data;
+    },
+    enabled: recipeIds.length > 0,
+  });
+
+  const recipeMap = new Map(recipes.map(r => [r.id, r]));
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -93,32 +117,94 @@ export default function NutritionPlan() {
 
       {/* Meals */}
       <div className="space-y-3">
-        {meals.map((meal, i) => (
-          <motion.div
-            key={meal.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 + i * 0.05 }}
-            className="rounded-xl border border-border bg-card p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold">{meal.meal_name}</h3>
-              {meal.calories && (
-                <span className="text-xs text-muted-foreground">{meal.calories} kcal</span>
-              )}
-            </div>
-            {meal.description && (
-              <p className="text-sm text-muted-foreground mb-2">{meal.description}</p>
-            )}
-            {(meal.protein_g || meal.carbs_g || meal.fat_g) && (
-              <div className="flex gap-3 text-xs text-muted-foreground">
-                {meal.protein_g && <span>P: {meal.protein_g}g</span>}
-                {meal.carbs_g && <span>K: {meal.carbs_g}g</span>}
-                {meal.fat_g && <span>F: {meal.fat_g}g</span>}
+        {meals.map((meal, i) => {
+          const recipe = recipeMap.get((meal as any).recipe_id);
+          const isExpanded = expandedMeal === meal.id;
+          const ingredients = recipe?.ingredients as Ingredient[] | undefined;
+
+          return (
+            <motion.div
+              key={meal.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + i * 0.05 }}
+              className="rounded-xl border border-border bg-card overflow-hidden"
+            >
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold">{meal.meal_name}</h3>
+                  {meal.calories && (
+                    <span className="text-xs text-muted-foreground">{meal.calories} kcal</span>
+                  )}
+                </div>
+                {meal.description && (
+                  <p className="text-sm text-muted-foreground mb-2">{meal.description}</p>
+                )}
+                {(meal.protein_g || meal.carbs_g || meal.fat_g) && (
+                  <div className="flex gap-3 text-xs text-muted-foreground mb-2">
+                    {meal.protein_g && <span>P: {meal.protein_g}g</span>}
+                    {meal.carbs_g && <span>K: {meal.carbs_g}g</span>}
+                    {meal.fat_g && <span>F: {meal.fat_g}g</span>}
+                  </div>
+                )}
+
+                {recipe && (
+                  <button
+                    onClick={() => setExpandedMeal(isExpanded ? null : meal.id)}
+                    className="flex items-center gap-1.5 mt-1 text-xs text-primary font-medium hover:underline"
+                  >
+                    <ChefHat className="h-3.5 w-3.5" />
+                    Se opskrift
+                    {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                  </button>
+                )}
               </div>
-            )}
-          </motion.div>
-        ))}
+
+              <AnimatePresence>
+                {isExpanded && recipe && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-border bg-secondary/30 overflow-hidden"
+                  >
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-semibold">{recipe.title}</h4>
+                        {recipe.prep_time_min && (
+                          <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                            <Clock className="h-3 w-3" /> {recipe.prep_time_min} min
+                          </span>
+                        )}
+                      </div>
+
+                      {ingredients && ingredients.length > 0 && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1">Ingredienser</p>
+                          <ul className="space-y-0.5">
+                            {ingredients.map((ing, idx) => (
+                              <li key={idx} className="text-xs flex gap-2">
+                                <span className="text-muted-foreground min-w-[4rem]">{ing.amount}</span>
+                                <span>{ing.name}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {recipe.instructions && (
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1">Fremgangsmåde</p>
+                          <p className="text-xs whitespace-pre-wrap leading-relaxed">{recipe.instructions}</p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
