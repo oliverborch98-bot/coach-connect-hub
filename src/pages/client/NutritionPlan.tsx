@@ -120,7 +120,7 @@ export default function NutritionPlan() {
         {meals.map((meal, i) => {
           const recipe = recipeMap.get((meal as any).recipe_id);
           const isExpanded = expandedMeal === meal.id;
-          const ingredients = recipe?.ingredients as Ingredient[] | undefined;
+          const ingredients = recipe?.ingredients as unknown as Ingredient[] | undefined;
 
           return (
             <motion.div
