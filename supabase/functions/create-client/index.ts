@@ -177,11 +177,11 @@ Deno.serve(async (req) => {
       userId = authData.user.id;
     }
 
-    // Update profile with extra info (skip if already done for existing users)
+    // Update profile with extra info and set must_change_password flag
     if (!isExistingUser) {
       await supabase
         .from("profiles")
-        .update({ phone, age: parseInt(age) || null })
+        .update({ phone, age: parseInt(age) || null, must_change_password: true })
         .eq("id", userId);
     }
 

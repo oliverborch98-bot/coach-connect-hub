@@ -39,6 +39,7 @@ import ClientTransformation from "@/pages/client/Transformation";
 import ClientAIChat from "@/pages/client/AIChat";
 import ClientLeaderboard from "@/pages/client/Leaderboard";
 import ClientGuide from "@/pages/client/Guide";
+import ChangePassword from "@/pages/client/ChangePassword";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -87,6 +88,20 @@ function AppRoutes() {
 function ClientRoutes() {
   const { user } = useAuth();
   const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+  const [mustChangePassword, setMustChangePassword] = useState<boolean | null>(null);
+
+  const { data: profileFlags } = useQuery({
+    queryKey: ['profile-flags', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('must_change_password')
+        .eq('id', user!.id)
+        .single();
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const { data: clientProfile } = useQuery({
     queryKey: ['my-client-profile-onboarding', user?.id],
@@ -115,17 +130,28 @@ function ClientRoutes() {
   });
 
   useEffect(() => {
+    if (profileFlags !== undefined) {
+      setMustChangePassword((profileFlags as any)?.must_change_password ?? false);
+    }
+  }, [profileFlags]);
+
+  useEffect(() => {
     if (!clientProfile) return;
     if (obLoading) return;
     setOnboardingDone(!!onboarding);
   }, [clientProfile, onboarding, obLoading]);
 
-  if (onboardingDone === null) {
+  if (mustChangePassword === null || onboardingDone === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // Force password change before anything else
+  if (mustChangePassword) {
+    return <ChangePassword />;
   }
 
   if (!onboardingDone && clientProfile) {
