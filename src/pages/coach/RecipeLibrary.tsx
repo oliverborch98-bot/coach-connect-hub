@@ -62,14 +62,14 @@ export default function RecipeLibrary() {
         title: form.title,
         description: form.description || null,
         instructions: form.instructions || null,
-        ingredients: form.ingredients.filter(i => i.name.trim()),
+        ingredients: JSON.parse(JSON.stringify(form.ingredients.filter(i => i.name.trim()))),
         prep_time_min: form.prep_time_min,
         calories: form.calories,
         protein_g: form.protein_g,
         carbs_g: form.carbs_g,
         fat_g: form.fat_g,
         tags: form.tags,
-      };
+      } as any;
 
       if (editingId) {
         const { error } = await supabase.from('recipes').update(payload).eq('id', editingId);
