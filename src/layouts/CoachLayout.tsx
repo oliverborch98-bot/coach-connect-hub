@@ -1,7 +1,9 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Phone, UserPlus, Settings, LogOut, Dumbbell, UtensilsCrossed, BarChart3, Library, CreditCard, Sparkles, ChefHat } from 'lucide-react';
+import { LayoutDashboard, Phone, UserPlus, Settings, LogOut, Dumbbell, UtensilsCrossed, BarChart3, Library, CreditCard, Sparkles, ChefHat, MessageSquare } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import NotificationBell from '@/components/NotificationBell';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const navItems = [
   { to: '/coach', icon: LayoutDashboard, label: 'Oversigt', end: true },
@@ -20,6 +22,21 @@ const navItems = [
 
 export default function CoachLayout() {
   const { signOut, user } = useAuth();
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ['unread-messages', user?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('receiver_id', user!.id)
+        .eq('is_read', false);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    enabled: !!user,
+    refetchInterval: 15000,
+  });
 
   const linkClass = (isActive: boolean) =>
     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
@@ -46,6 +63,11 @@ export default function CoachLayout() {
         </nav>
         <div className="flex items-center gap-2 px-3 py-2">
           <NotificationBell />
+          {unreadCount > 0 && (
+            <span className="text-[11px] text-muted-foreground">
+              {unreadCount} ulæst{unreadCount !== 1 ? 'e' : ''} besked{unreadCount !== 1 ? 'er' : ''}
+            </span>
+          )}
         </div>
         <button onClick={signOut} className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive transition-colors">
           <LogOut className="h-4 w-4" />
