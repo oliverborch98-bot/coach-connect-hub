@@ -183,7 +183,7 @@ Deno.serve(async (req) => {
         name: "Foundation",
         start_date: startDate,
         end_date: phase2Start.toISOString().split("T")[0],
-        status: packageType === "build_method" ? "active" : "locked",
+        status: "active",
         focus_items: [
           "Lære at tracke korrekt",
           "Etablere træningsrutine",

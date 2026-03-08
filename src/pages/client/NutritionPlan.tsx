@@ -29,7 +29,7 @@ export default function NutritionPlan() {
         .select('*')
         .eq('client_id', clientProfile!.id)
         .eq('status', 'active')
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
