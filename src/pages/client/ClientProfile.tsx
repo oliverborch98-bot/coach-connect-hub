@@ -219,6 +219,22 @@ export default function ClientProfile() {
               <p className="text-xs text-muted-foreground">Fase</p>
               <p className="capitalize">{clientProfile.current_phase ?? '–'}</p>
             </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Startdato</p>
+              <p>{clientProfile.subscription_start ? format(new Date(clientProfile.subscription_start), 'd. MMM yyyy', { locale: da }) : '–'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Slutdato</p>
+              <p>{clientProfile.binding_end ? format(new Date(clientProfile.binding_end), 'd. MMM yyyy', { locale: da }) : '–'}</p>
+            </div>
+            {clientProfile.binding_end && (
+              <div className="col-span-2">
+                <p className="text-xs text-muted-foreground">Dage tilbage</p>
+                <p className="font-semibold text-primary">
+                  {Math.max(0, Math.ceil((new Date(clientProfile.binding_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} dage
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
