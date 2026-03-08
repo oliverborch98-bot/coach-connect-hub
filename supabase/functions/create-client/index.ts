@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
       packageType,
     } = body;
 
-    const monthlyPrice = packageType === "build_method" ? 1500 : 1000;
+    const monthlyPrice = packageType === "prepaid" ? 0 : packageType === "build_method" ? 1500 : 1000;
 
     // Generate a random password
     const password = crypto.randomUUID().slice(0, 12) + "A1!";
@@ -302,8 +302,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create Stripe checkout session
+    // Create Stripe checkout session (skip for prepaid)
     let checkoutUrl = null;
+    if (packageType !== "prepaid") {
     try {
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
       if (stripeKey) {
@@ -347,6 +348,7 @@ Deno.serve(async (req) => {
     } catch (stripeErr: any) {
       console.error("Stripe checkout creation failed:", stripeErr.message);
     }
+    } // end if not prepaid
 
     return new Response(
       JSON.stringify({

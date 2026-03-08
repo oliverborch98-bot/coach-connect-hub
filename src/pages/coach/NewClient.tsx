@@ -92,6 +92,7 @@ export default function CoachNewClient() {
           >
             <option value="the_system">The System — 1.000 kr/md</option>
             <option value="build_method">Build Method — 1.500 kr/md</option>
+            <option value="prepaid">Allerede betalt (ingen Stripe)</option>
           </select>
         </div>
 
