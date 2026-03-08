@@ -226,6 +226,29 @@ export default function ClientCheckinsTab({ clientId }: Props) {
                         </div>
                       )}
 
+                      {/* AI Analysis */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => analyzeCheckin(ci.id)}
+                          disabled={aiLoading === ci.id}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+                        >
+                          {aiLoading === ci.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                          {aiLoading === ci.id ? 'Analyserer...' : 'AI Analyse'}
+                        </button>
+                        {aiAnalysis[ci.id] && (
+                          <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 relative">
+                            <button onClick={() => setAiAnalysis(prev => { const n = { ...prev }; delete n[ci.id]; return n; })} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                            <p className="text-[10px] text-primary font-semibold mb-2 flex items-center gap-1"><Sparkles className="h-3 w-3" /> AI ANALYSE</p>
+                            <div className="prose prose-sm prose-invert max-w-none text-xs [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-xs [&>h3]:text-xs">
+                              <ReactMarkdown>{aiAnalysis[ci.id]}</ReactMarkdown>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
                       <div className="space-y-2">
                         <label className="text-xs font-medium">Coach feedback</label>
                         <textarea
@@ -235,16 +258,18 @@ export default function ClientCheckinsTab({ clientId }: Props) {
                           className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm min-h-[80px] resize-none focus:outline-none focus:ring-2 focus:ring-primary"
                           disabled={ci.status === 'reviewed' && !feedbackMap[ci.id]}
                         />
-                        {ci.status !== 'reviewed' || feedbackMap[ci.id] ? (
-                          <button
-                            onClick={() => reviewMutation.mutate({ checkinId: ci.id, feedback: feedbackMap[ci.id] ?? feedback })}
-                            disabled={reviewMutation.isPending || !feedback.trim()}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
-                          >
-                            <Send className="h-3.5 w-3.5" />
-                            {reviewMutation.isPending ? 'Sender...' : ci.status === 'reviewed' ? 'Opdater feedback' : 'Send feedback & markér reviewed'}
-                          </button>
-                        ) : null}
+                        <div className="flex items-center gap-2">
+                          {ci.status !== 'reviewed' || feedbackMap[ci.id] ? (
+                            <button
+                              onClick={() => reviewMutation.mutate({ checkinId: ci.id, feedback: feedbackMap[ci.id] ?? feedback })}
+                              disabled={reviewMutation.isPending || !feedback.trim()}
+                              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                              {reviewMutation.isPending ? 'Sender...' : ci.status === 'reviewed' ? 'Opdater feedback' : 'Send feedback & markér reviewed'}
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     </motion.div>
                   )}
