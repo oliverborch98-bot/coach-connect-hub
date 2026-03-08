@@ -72,7 +72,7 @@ export default function BodyMeasurements() {
       const row: Record<string, any> = { client_id: clientProfile!.id, date: form.date || new Date().toISOString().slice(0, 10) };
       fields.forEach(f => { if (form[f.key]) row[f.key] = parseFloat(form[f.key]); });
       if (form.notes) row.notes = form.notes;
-      const { error } = await supabase.from('body_measurements').insert(row);
+      const { error } = await supabase.from('body_measurements').insert(row as any);
       if (error) throw error;
     },
     onSuccess: () => {
