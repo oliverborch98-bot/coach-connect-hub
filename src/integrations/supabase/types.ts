@@ -976,6 +976,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          must_change_password: boolean
           phone: string | null
           profile_image_url: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -985,6 +986,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          must_change_password?: boolean
           phone?: string | null
           profile_image_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -994,6 +996,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          must_change_password?: boolean
           phone?: string | null
           profile_image_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
