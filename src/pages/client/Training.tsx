@@ -283,6 +283,17 @@ export default function ClientTraining() {
                                   })}
                                 </div>
 
+                                {/* Rest Timer */}
+                                {activeTimer?.exId === ex.id && (
+                                  <div className="mt-2">
+                                    <RestTimer
+                                      seconds={activeTimer.seconds}
+                                      autoStart
+                                      onComplete={() => setActiveTimer(null)}
+                                    />
+                                  </div>
+                                )}
+
                                 {ex.notes && <p className="text-xs text-muted-foreground italic">{ex.notes}</p>}
                                 {(ex as any).exercises?.instructions && (
                                   <details className="mt-1">
