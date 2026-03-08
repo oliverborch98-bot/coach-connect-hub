@@ -105,9 +105,10 @@ Deno.serve(async (req) => {
       goalWeight,
       primaryGoal,
       packageType,
+      alreadyPaid,
     } = body;
 
-    const monthlyPrice = packageType === "prepaid" ? 0 : packageType === "build_method" ? 1500 : 1000;
+    const monthlyPrice = packageType === "build_method" ? 1500 : 1000;
 
     // Generate a random password
     const password = crypto.randomUUID().slice(0, 12) + "A1!";
@@ -302,9 +303,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Create Stripe checkout session (skip for prepaid)
+    // Create Stripe checkout session
     let checkoutUrl = null;
-    if (packageType !== "prepaid") {
     try {
       const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
       if (stripeKey) {
@@ -325,6 +325,12 @@ Deno.serve(async (req) => {
         }
 
         const origin = req.headers.get("origin") || "https://builtbyborch.dk";
+
+        // If already paid, add 30-day trial so first charge is skipped
+        const trialEnd = alreadyPaid
+          ? Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60
+          : undefined;
+
         const session = await stripe.checkout.sessions.create({
           customer: customerId,
           line_items: [{ price: priceId, quantity: 1 }],
@@ -340,6 +346,7 @@ Deno.serve(async (req) => {
               client_profile_id: clientId,
               package_type: packageType,
             },
+            ...(trialEnd ? { trial_end: trialEnd } : {}),
           },
         });
 
@@ -348,7 +355,6 @@ Deno.serve(async (req) => {
     } catch (stripeErr: any) {
       console.error("Stripe checkout creation failed:", stripeErr.message);
     }
-    } // end if not prepaid
 
     return new Response(
       JSON.stringify({
