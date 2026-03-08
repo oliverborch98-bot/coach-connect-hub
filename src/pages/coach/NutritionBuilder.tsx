@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Loader2, Save, UtensilsCrossed, Sparkles } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, Save, UtensilsCrossed, Sparkles, ChefHat } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,7 @@ interface MealDraft {
   protein_g: number | '';
   carbs_g: number | '';
   fat_g: number | '';
+  recipe_id: string | null;
 }
 
 const emptyMeal = (order: number): MealDraft => ({
@@ -24,6 +25,7 @@ const emptyMeal = (order: number): MealDraft => ({
   protein_g: '',
   carbs_g: '',
   fat_g: '',
+  recipe_id: null,
 });
 
 export default function NutritionBuilder() {
@@ -92,6 +94,19 @@ export default function NutritionBuilder() {
     },
   });
 
+  // Fetch recipes
+  const { data: recipes = [] } = useQuery({
+    queryKey: ['recipes-list'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('id, title, calories, protein_g, carbs_g, fat_g')
+        .order('title');
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!clientId) throw new Error('Vælg en klient');
@@ -126,6 +141,7 @@ export default function NutritionBuilder() {
         protein_g: m.protein_g || null,
         carbs_g: m.carbs_g || null,
         fat_g: m.fat_g || null,
+        recipe_id: m.recipe_id || null,
       }));
 
       if (mealInserts.length > 0) {
@@ -334,6 +350,23 @@ export default function NutritionBuilder() {
                   placeholder="F.eks. 200g kylling, 150g ris, grøntsager..."
                   className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs resize-none"
                 />
+              </div>
+
+              {/* Recipe picker */}
+              <div className="mt-2 space-y-1">
+                <label className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <ChefHat className="h-3 w-3" /> Link opskrift
+                </label>
+                <select
+                  value={meal.recipe_id ?? ''}
+                  onChange={e => updateMeal(meal.id, 'recipe_id', e.target.value || null)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs"
+                >
+                  <option value="">Ingen opskrift</option>
+                  {recipes.map(r => (
+                    <option key={r.id} value={r.id}>{r.title}{r.calories ? ` (${r.calories} kcal)` : ''}</option>
+                  ))}
+                </select>
               </div>
             </motion.div>
           ))}
