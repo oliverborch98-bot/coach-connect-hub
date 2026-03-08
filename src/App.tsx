@@ -20,6 +20,7 @@ import PaymentDashboard from "@/pages/coach/PaymentDashboard";
 import AIProgramBuilder from "@/pages/coach/AIProgramBuilder";
 import AINutritionBuilder from "@/pages/coach/AINutritionBuilder";
 import RecipeLibrary from "@/pages/coach/RecipeLibrary";
+import OnboardingWizard from "@/pages/client/OnboardingWizard";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientCheckIn from "@/pages/client/CheckIn";
 import ClientHabits from "@/pages/client/Habits";
@@ -72,6 +73,62 @@ function AppRoutes() {
         <Route path="/" element={<Navigate to="/coach" replace />} />
         <Route path="*" element={<Navigate to="/coach" replace />} />
       </Routes>
+    );
+  }
+
+  return <ClientRoutes />;
+}
+
+function ClientRoutes() {
+  const { user } = useAuth();
+  const [onboardingDone, setOnboardingDone] = useState<boolean | null>(null);
+
+  const { data: clientProfile } = useQuery({
+    queryKey: ['my-client-profile-onboarding', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('client_profiles')
+        .select('id')
+        .eq('user_id', user!.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const { data: onboarding, isLoading: obLoading } = useQuery({
+    queryKey: ['onboarding-status', clientProfile?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('onboarding_responses')
+        .select('id')
+        .eq('client_id', clientProfile!.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!clientProfile,
+  });
+
+  useEffect(() => {
+    if (!clientProfile) return;
+    if (obLoading) return;
+    setOnboardingDone(!!onboarding);
+  }, [clientProfile, onboarding, obLoading]);
+
+  if (onboardingDone === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!onboardingDone && clientProfile) {
+    return (
+      <OnboardingWizard
+        clientId={clientProfile.id}
+        onComplete={() => setOnboardingDone(true)}
+      />
     );
   }
 
