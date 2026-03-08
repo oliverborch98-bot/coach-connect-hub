@@ -177,11 +177,13 @@ Deno.serve(async (req) => {
       userId = authData.user.id;
     }
 
-    // Update profile with extra info
-    await supabase
-      .from("profiles")
-      .update({ phone, age: parseInt(age) || null })
-      .eq("id", userId);
+    // Update profile with extra info (skip if already done for existing users)
+    if (!isExistingUser) {
+      await supabase
+        .from("profiles")
+        .update({ phone, age: parseInt(age) || null })
+        .eq("id", userId);
+    }
 
     // Calculate binding end (6 months)
     const subscriptionStart = new Date(startDate);
