@@ -113,7 +113,9 @@ Deno.serve(async (req) => {
     // Generate a random password
     const password = crypto.randomUUID().slice(0, 12) + "A1!";
 
-    // Create auth user
+    // Create auth user (or reuse existing)
+    let userId: string;
+    let isExistingUser = false;
     const { data: authData, error: authError } =
       await supabase.auth.admin.createUser({
         email,
@@ -123,19 +125,65 @@ Deno.serve(async (req) => {
       });
 
     if (authError) {
-      return new Response(JSON.stringify({ error: authError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (authError.message?.includes("already been registered")) {
+        // Reuse existing user
+        const { data: existingUsers } = await supabase.auth.admin.listUsers();
+        const existingUser = existingUsers?.users?.find((u: any) => u.email === email);
+        if (!existingUser) {
+          return new Response(JSON.stringify({ error: "Bruger findes men kunne ikke hentes" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        userId = existingUser.id;
+        isExistingUser = true;
+
+        // Reset password for the existing user
+        await supabase.auth.admin.updateUserById(userId, {
+          password,
+          user_metadata: { full_name: name, role: "client" },
+        });
+
+        // Ensure profile exists
+        await supabase.from("profiles").upsert({
+          id: userId,
+          full_name: name,
+          role: "client",
+          phone,
+          age: parseInt(age) || null,
+        });
+
+        // Check if client_profile already exists for this user + coach
+        const { data: existingCp } = await supabase
+          .from("client_profiles")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("coach_id", caller.id)
+          .maybeSingle();
+
+        if (existingCp) {
+          return new Response(JSON.stringify({ error: "Denne klient er allerede oprettet hos dig" }), {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        return new Response(JSON.stringify({ error: authError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      userId = authData.user.id;
     }
 
-    const userId = authData.user.id;
-
-    // Update profile with extra info
-    await supabase
-      .from("profiles")
-      .update({ phone, age: parseInt(age) || null })
-      .eq("id", userId);
+    // Update profile with extra info (skip if already done for existing users)
+    if (!isExistingUser) {
+      await supabase
+        .from("profiles")
+        .update({ phone, age: parseInt(age) || null })
+        .eq("id", userId);
+    }
 
     // Calculate binding end (6 months)
     const subscriptionStart = new Date(startDate);
