@@ -500,6 +500,7 @@ export type Database = {
           meal_order: number | null
           plan_id: string
           protein_g: number | null
+          recipe_id: string | null
         }
         Insert: {
           calories?: number | null
@@ -511,6 +512,7 @@ export type Database = {
           meal_order?: number | null
           plan_id: string
           protein_g?: number | null
+          recipe_id?: string | null
         }
         Update: {
           calories?: number | null
@@ -522,6 +524,7 @@ export type Database = {
           meal_order?: number | null
           plan_id?: string
           protein_g?: number | null
+          recipe_id?: string | null
         }
         Relationships: [
           {
@@ -529,6 +532,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "nutrition_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meals_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
             referencedColumns: ["id"]
           },
         ]
@@ -865,6 +875,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      recipes: {
+        Row: {
+          calories: number | null
+          carbs_g: number | null
+          created_at: string | null
+          description: string | null
+          fat_g: number | null
+          id: string
+          image_url: string | null
+          ingredients: Json | null
+          instructions: string | null
+          prep_time_min: number | null
+          protein_g: number | null
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          description?: string | null
+          fat_g?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json | null
+          instructions?: string | null
+          prep_time_min?: number | null
+          protein_g?: number | null
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string | null
+          description?: string | null
+          fat_g?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json | null
+          instructions?: string | null
+          prep_time_min?: number | null
+          protein_g?: number | null
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: []
       }
       resources: {
         Row: {
