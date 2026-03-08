@@ -1,9 +1,13 @@
-import { useState } from 'react';
-import { Send, TrendingUp, Moon, Zap, CheckCircle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Send, TrendingUp, Moon, Zap, CheckCircle, Sparkles, Loader2, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -16,6 +20,8 @@ export default function ClientCheckinsTab({ clientId }: Props) {
   const queryClient = useQueryClient();
   const [feedbackMap, setFeedbackMap] = useState<Record<string, string>>({});
   const [expandedCheckin, setExpandedCheckin] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<Record<string, string>>({});
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
 
   const { data: checkins = [] } = useQuery({
     queryKey: ['client-checkins', clientId],
