@@ -29,3 +29,15 @@ verify_jwt = false
 
 [functions.send-checkin-reminder]
 verify_jwt = false
+
+[functions.client-chat]
+verify_jwt = false
+
+[functions.analyze-checkin]
+verify_jwt = false
+
+[functions.generate-nutrition]
+verify_jwt = false
+
+[functions.generate-program]
+verify_jwt = false

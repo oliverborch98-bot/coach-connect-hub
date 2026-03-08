@@ -29,6 +29,7 @@ import ClientGoalsScore from "@/pages/client/GoalsScore";
 import ClientProgressPhotos from "@/pages/client/ProgressPhotos";
 import ClientResources from "@/pages/client/Resources";
 import ClientTransformation from "@/pages/client/Transformation";
+import ClientAIChat from "@/pages/client/AIChat";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -83,6 +84,7 @@ function AppRoutes() {
         <Route path="/client/profile" element={<ClientProfile />} />
         <Route path="/client/resources" element={<ClientResources />} />
         <Route path="/client/transformation" element={<ClientTransformation />} />
+        <Route path="/client/ai" element={<ClientAIChat />} />
       </Route>
       <Route path="/" element={<Navigate to="/client" replace />} />
       <Route path="*" element={<Navigate to="/client" replace />} />
