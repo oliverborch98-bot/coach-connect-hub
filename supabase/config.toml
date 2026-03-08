@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.generate-program]
 verify_jwt = false
+
+[functions.ai-build-program]
+verify_jwt = false
+
+[functions.ai-build-nutrition]
+verify_jwt = false
