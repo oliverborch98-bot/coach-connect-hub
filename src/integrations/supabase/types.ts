@@ -243,6 +243,38 @@ export type Database = {
           },
         ]
       }
+      coach_default_habits: {
+        Row: {
+          coach_id: string
+          created_at: string | null
+          habit_name: string
+          habit_order: number | null
+          id: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string | null
+          habit_name: string
+          habit_order?: number | null
+          id?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string | null
+          habit_name?: string
+          habit_order?: number | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_default_habits_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_notes: {
         Row: {
           category: string | null
