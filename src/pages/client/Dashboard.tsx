@@ -85,11 +85,19 @@ export default function ClientDashboard() {
           <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-medium text-destructive">Betaling mangler</p>
-            <p className="text-xs text-muted-foreground">Din seneste betaling fejlede. Opdatér din betalingsmetode under profil.</p>
+            <p className="text-xs text-muted-foreground">Din seneste betaling fejlede. Betal nu eller opdatér din betalingsmetode.</p>
           </div>
-          <button onClick={() => navigate('/client/profile')} className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-medium hover:bg-destructive/90 transition-colors shrink-0">
-            Løs
-          </button>
+          <div className="flex gap-2 shrink-0">
+            <button onClick={async () => {
+              try {
+                const { data, error } = await supabase.functions.invoke('customer-portal');
+                if (error) throw error;
+                if (data?.url) window.open(data.url, '_blank');
+              } catch {}
+            }} className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-medium hover:bg-destructive/90 transition-colors">
+              Betal nu
+            </button>
+          </div>
         </motion.div>
       )}
 

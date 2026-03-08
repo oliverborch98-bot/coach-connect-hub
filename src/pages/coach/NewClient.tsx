@@ -11,9 +11,10 @@ export default function CoachNewClient() {
     name: '', email: '', phone: '', age: '',
     startDate: '', startWeight: '', goalWeight: '', primaryGoal: '',
     packageType: 'the_system',
+    alreadyPaid: false,
   });
 
-  const update = (field: string, value: string) => setFormData(prev => ({ ...prev, [field]: value }));
+  const update = (field: string, value: string | boolean) => setFormData(prev => ({ ...prev, [field]: value }));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,9 +93,21 @@ export default function CoachNewClient() {
           >
             <option value="the_system">The System — 1.000 kr/md</option>
             <option value="build_method">Build Method — 1.500 kr/md</option>
-            <option value="prepaid">Allerede betalt (ingen Stripe)</option>
           </select>
         </div>
+
+        <label className="flex items-center gap-3 rounded-lg border border-border bg-secondary p-3 cursor-pointer hover:border-primary/30 transition-colors">
+          <input
+            type="checkbox"
+            checked={formData.alreadyPaid}
+            onChange={e => update('alreadyPaid', e.target.checked)}
+            className="h-4 w-4 rounded border-border accent-primary"
+          />
+          <div>
+            <p className="text-sm font-medium text-foreground">Allerede betalt</p>
+            <p className="text-xs text-muted-foreground">Klienten har betalt første måned — spring første Stripe-betaling over (30 dages trial)</p>
+          </div>
+        </label>
 
         <button type="submit" disabled={isSubmitting}
           className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">

@@ -231,8 +231,16 @@ export default function ClientProfile() {
           </h2>
 
           {isPastDue && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 text-sm text-destructive">
-              Din betaling er fejlet. Opdater din betalingsmetode nedenfor.
+            <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 space-y-2">
+              <p className="text-sm text-destructive">Din betaling er fejlet. Betal nu eller opdater din betalingsmetode.</p>
+              <button
+                onClick={openCustomerPortal}
+                disabled={portalLoading}
+                className="w-full flex items-center justify-center gap-2 rounded-lg bg-destructive text-destructive-foreground p-2.5 text-sm font-semibold hover:bg-destructive/90 transition-colors"
+              >
+                {portalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                Betal nu
+              </button>
             </div>
           )}
 
