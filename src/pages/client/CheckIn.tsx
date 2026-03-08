@@ -37,8 +37,8 @@ export default function ClientCheckIn() {
         .eq('status', 'pending')
         .order('checkin_number', { ascending: true })
         .limit(1)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
+        .maybeSingle();
+      if (error) throw error;
       return data;
     },
     enabled: !!clientProfile,
