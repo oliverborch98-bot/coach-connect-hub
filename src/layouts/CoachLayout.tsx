@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Phone, UserPlus, Settings, LogOut, Dumbbell, UtensilsCrossed, BarChart3, Library, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Phone, UserPlus, Settings, LogOut, Dumbbell, UtensilsCrossed, BarChart3, Library, CreditCard, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
@@ -9,6 +9,8 @@ const navItems = [
   { to: '/coach/program-builder', icon: Dumbbell, label: 'Program' },
   { to: '/coach/nutrition-builder', icon: UtensilsCrossed, label: 'Kostplan' },
   { to: '/coach/exercises', icon: Library, label: 'Øvelser' },
+  { to: '/coach/ai-program', icon: Sparkles, label: 'AI Program' },
+  { to: '/coach/ai-nutrition', icon: Sparkles, label: 'AI Kost' },
   { to: '/coach/payments', icon: CreditCard, label: 'Betaling' },
   { to: '/coach/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/coach/settings', icon: Settings, label: 'Indstillinger' },

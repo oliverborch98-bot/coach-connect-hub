@@ -17,6 +17,8 @@ import ProgramBuilder from "@/pages/coach/ProgramBuilder";
 import NutritionBuilder from "@/pages/coach/NutritionBuilder";
 import ExerciseLibrary from "@/pages/coach/ExerciseLibrary";
 import PaymentDashboard from "@/pages/coach/PaymentDashboard";
+import AIProgramBuilder from "@/pages/coach/AIProgramBuilder";
+import AINutritionBuilder from "@/pages/coach/AINutritionBuilder";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientCheckIn from "@/pages/client/CheckIn";
 import ClientHabits from "@/pages/client/Habits";
@@ -62,6 +64,8 @@ function AppRoutes() {
           <Route path="/coach/nutrition-builder" element={<NutritionBuilder />} />
           <Route path="/coach/exercises" element={<ExerciseLibrary />} />
           <Route path="/coach/payments" element={<PaymentDashboard />} />
+          <Route path="/coach/ai-program" element={<AIProgramBuilder />} />
+          <Route path="/coach/ai-nutrition" element={<AINutritionBuilder />} />
         </Route>
         <Route path="/" element={<Navigate to="/coach" replace />} />
         <Route path="*" element={<Navigate to="/coach" replace />} />
