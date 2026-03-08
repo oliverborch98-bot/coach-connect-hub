@@ -1,4 +1,5 @@
 import { Dumbbell, ChevronDown, Loader2, Save, Check } from 'lucide-react';
+import RestTimer from '@/components/RestTimer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ export default function ClientTraining() {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [localLogs, setLocalLogs] = useState<Record<string, LogEntry>>({});
   const [savedKeys, setSavedKeys] = useState<Set<string>>(new Set());
+  const [activeTimer, setActiveTimer] = useState<{ exId: string; seconds: number } | null>(null);
 
   const { data: clientProfile } = useQuery({
     queryKey: ['my-client-profile-training', user?.id],
@@ -121,6 +123,11 @@ export default function ClientTraining() {
       const key = `${entry.training_exercise_id}_${entry.set_number}`;
       setSavedKeys(prev => new Set(prev).add(key));
       queryClient.invalidateQueries({ queryKey: ['workout-logs-today'] });
+      // Find the exercise to get rest_seconds and start timer
+      const ex = exercises.find(e => e.id === entry.training_exercise_id);
+      if (ex?.rest_seconds) {
+        setActiveTimer({ exId: ex.id, seconds: ex.rest_seconds });
+      }
       setTimeout(() => setSavedKeys(prev => { const n = new Set(prev); n.delete(key); return n; }), 1500);
     },
   });
@@ -275,6 +282,17 @@ export default function ClientTraining() {
                                     );
                                   })}
                                 </div>
+
+                                {/* Rest Timer */}
+                                {activeTimer?.exId === ex.id && (
+                                  <div className="mt-2">
+                                    <RestTimer
+                                      seconds={activeTimer.seconds}
+                                      autoStart
+                                      onComplete={() => setActiveTimer(null)}
+                                    />
+                                  </div>
+                                )}
 
                                 {ex.notes && <p className="text-xs text-muted-foreground italic">{ex.notes}</p>}
                                 {(ex as any).exercises?.instructions && (
