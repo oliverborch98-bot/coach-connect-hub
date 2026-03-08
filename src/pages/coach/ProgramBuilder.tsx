@@ -54,8 +54,40 @@ export default function ProgramBuilder() {
   const [pickingForDay, setPickingForDay] = useState<string | null>(null);
   const [filterCategory, setFilterCategory] = useState('');
   const [filterEquipment, setFilterEquipment] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
-  // Fetch clients
+  const generateWithAI = async () => {
+    if (!clientId) { toast.error('Vælg en klient først'); return; }
+    setAiLoading(true);
+    try {
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-program`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: JSON.stringify({ clientId, daysCount: days.length || 4, phase, focus: '' }),
+      });
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'AI fejl'); }
+      const program = await resp.json();
+      if (program.programName) setProgramName(program.programName);
+      if (program.days?.length) {
+        setDays(program.days.map((d: any, di: number) => ({
+          id: crypto.randomUUID(),
+          day_name: d.dayName ?? `Dag ${di + 1}`,
+          exercises: (d.exercises ?? []).map((ex: any) => ({
+            id: crypto.randomUUID(),
+            exercise_id: ex.exerciseId ?? '',
+            name: exercises.find((e: any) => e.id === ex.exerciseId)?.name ?? ex.exerciseId ?? '',
+            sets: ex.sets ?? 3,
+            reps: ex.reps ?? '8-12',
+            tempo: ex.tempo ?? '',
+            rest_seconds: ex.restSeconds ?? 90,
+            notes: ex.notes ?? '',
+          })),
+        })));
+      }
+      toast.success('AI-program genereret! Gennemgå og gem.');
+    } catch (e: any) { toast.error(e.message); }
+    setAiLoading(false);
+  };
   const { data: clients = [] } = useQuery({
     queryKey: ['coach-clients-list'],
     queryFn: async () => {
@@ -177,6 +209,11 @@ export default function ProgramBuilder() {
           <h1 className="text-xl font-bold">Ny Træningsprogram</h1>
           <p className="text-sm text-muted-foreground">Opret og tildel et program til en klient</p>
         </div>
+        <button onClick={generateWithAI} disabled={aiLoading || !clientId}
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
+          {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {aiLoading ? 'Genererer...' : 'Generér med AI'}
+        </button>
       </div>
 
       {/* Meta */}
