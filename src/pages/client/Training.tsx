@@ -123,6 +123,11 @@ export default function ClientTraining() {
       const key = `${entry.training_exercise_id}_${entry.set_number}`;
       setSavedKeys(prev => new Set(prev).add(key));
       queryClient.invalidateQueries({ queryKey: ['workout-logs-today'] });
+      // Find the exercise to get rest_seconds and start timer
+      const ex = exercises.find(e => e.id === entry.training_exercise_id);
+      if (ex?.rest_seconds) {
+        setActiveTimer({ exId: ex.id, seconds: ex.rest_seconds });
+      }
       setTimeout(() => setSavedKeys(prev => { const n = new Set(prev); n.delete(key); return n; }), 1500);
     },
   });
