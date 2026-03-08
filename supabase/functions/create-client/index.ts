@@ -228,14 +228,29 @@ Deno.serve(async (req) => {
       },
     ]);
 
-    // Create 5 standard habits
-    await supabase.from("daily_habits").insert([
-      { client_id: clientId, habit_name: "Drak 3L vand", habit_order: 1 },
-      { client_id: clientId, habit_name: "Fulgte kostplan", habit_order: 2 },
-      { client_id: clientId, habit_name: "Trænede i dag", habit_order: 3 },
-      { client_id: clientId, habit_name: "8 timers søvn", habit_order: 4 },
-      { client_id: clientId, habit_name: "Supplement taget", habit_order: 5 },
-    ]);
+    // Fetch coach's custom default habits, fallback to system defaults
+    const { data: coachHabits } = await supabase
+      .from("coach_default_habits")
+      .select("habit_name, habit_order")
+      .eq("coach_id", caller.id)
+      .order("habit_order", { ascending: true });
+
+    const habitsToInsert =
+      coachHabits && coachHabits.length > 0
+        ? coachHabits.map((h) => ({
+            client_id: clientId,
+            habit_name: h.habit_name,
+            habit_order: h.habit_order,
+          }))
+        : [
+            { client_id: clientId, habit_name: "Drak 3L vand", habit_order: 1 },
+            { client_id: clientId, habit_name: "Fulgte kostplan", habit_order: 2 },
+            { client_id: clientId, habit_name: "Trænede i dag", habit_order: 3 },
+            { client_id: clientId, habit_name: "8 timers søvn", habit_order: 4 },
+            { client_id: clientId, habit_name: "Supplement taget", habit_order: 5 },
+          ];
+
+    await supabase.from("daily_habits").insert(habitsToInsert);
 
     // Create kickoff call
     await supabase.from("coaching_calls").insert({
