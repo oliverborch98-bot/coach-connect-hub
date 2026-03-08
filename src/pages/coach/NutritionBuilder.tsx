@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2, Loader2, Save, UtensilsCrossed } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Loader2, Save, UtensilsCrossed, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,6 +45,40 @@ export default function NutritionBuilder() {
   const [fatG, setFatG] = useState<number | ''>('');
   const [notes, setNotes] = useState('');
   const [meals, setMeals] = useState<MealDraft[]>([emptyMeal(0)]);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const generateWithAI = async () => {
+    if (!clientId) { toast.error('Vælg en klient først'); return; }
+    setAiLoading(true);
+    try {
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-nutrition`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: JSON.stringify({ clientId, mealsCount: meals.length || 4, goal: '' }),
+      });
+      if (!resp.ok) { const err = await resp.json(); throw new Error(err.error || 'AI fejl'); }
+      const plan = await resp.json();
+      setPlanName(plan.planName ?? planName);
+      setCaloriesTarget(plan.caloriesTarget ?? '');
+      setProteinG(plan.proteinG ?? '');
+      setCarbsG(plan.carbsG ?? '');
+      setFatG(plan.fatG ?? '');
+      setNotes(plan.notes ?? '');
+      if (plan.meals?.length) {
+        setMeals(plan.meals.map((m: any, i: number) => ({
+          id: crypto.randomUUID(),
+          meal_name: m.mealName ?? `Måltid ${i + 1}`,
+          description: m.description ?? '',
+          calories: m.calories ?? '',
+          protein_g: m.proteinG ?? '',
+          carbs_g: m.carbsG ?? '',
+          fat_g: m.fatG ?? '',
+        })));
+      }
+      toast.success('AI-kostplan genereret! Gennemgå og gem.');
+    } catch (e: any) { toast.error(e.message); }
+    setAiLoading(false);
+  };
 
   // Fetch clients
   const { data: clients = [] } = useQuery({
