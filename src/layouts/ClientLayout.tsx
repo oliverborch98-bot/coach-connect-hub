@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell, Utensils, Layers, Target, Camera, BookOpen, Sparkles } from 'lucide-react';
+import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell, Utensils, Layers, Target, Camera, BookOpen, Sparkles, Bot } from 'lucide-react';
 
 const navItems = [
   { to: '/client', icon: LayoutDashboard, label: 'Hjem', end: true },
@@ -12,6 +12,7 @@ const navItems = [
   { to: '/client/photos', icon: Camera, label: 'Billeder' },
   { to: '/client/resources', icon: BookOpen, label: 'Ressourcer' },
   { to: '/client/transformation', icon: Sparkles, label: 'Transformation' },
+  { to: '/client/ai', icon: Bot, label: 'AI Chat' },
   { to: '/client/messages', icon: MessageSquare, label: 'Beskeder' },
   { to: '/client/profile', icon: User, label: 'Profil' },
 ];
