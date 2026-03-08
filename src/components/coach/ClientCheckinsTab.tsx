@@ -53,7 +53,57 @@ export default function ClientCheckinsTab({ clientId }: Props) {
     onError: (err: any) => toast.error(err.message),
   });
 
-  // Prepare chart data (ascending order for charts)
+  const analyzeCheckin = async (checkinId: string) => {
+    setAiLoading(checkinId);
+    try {
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-checkin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ clientId, checkinId }),
+      });
+
+      if (!resp.ok || !resp.body) {
+        const err = await resp.json().catch(() => ({ error: 'Fejl' }));
+        throw new Error(err.error || 'AI fejl');
+      }
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let result = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let idx: number;
+        while ((idx = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (!line.startsWith('data: ')) continue;
+          const json = line.slice(6).trim();
+          if (json === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(json);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              result += content;
+              setAiAnalysis(prev => ({ ...prev, [checkinId]: result }));
+            }
+          } catch { break; }
+        }
+      }
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+    setAiLoading(null);
+  };
+
   const chartData = [...checkins]
     .reverse()
     .map(ci => ({
