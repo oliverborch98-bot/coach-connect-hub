@@ -1,5 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, ClipboardCheck, CheckSquare, MessageSquare, User, Dumbbell, Utensils, Layers, Target, Camera, BookOpen, Sparkles, Bot } from 'lucide-react';
+import NotificationBell from '@/components/NotificationBell';
 
 const navItems = [
   { to: '/client', icon: LayoutDashboard, label: 'Hjem', end: true },
@@ -20,8 +21,10 @@ const navItems = [
 export default function ClientLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="flex items-center justify-center p-4 border-b border-border">
+      <header className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="w-10" />
         <h1 className="text-base font-bold gold-text">THE BUILD METHOD</h1>
+        <NotificationBell />
       </header>
 
       <main className="flex-1 overflow-auto p-4 pb-20">
