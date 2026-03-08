@@ -1,4 +1,5 @@
 import { Dumbbell, ChevronDown, Loader2, Save, Check } from 'lucide-react';
+import RestTimer from '@/components/RestTimer';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ export default function ClientTraining() {
   const [expandedDay, setExpandedDay] = useState<string | null>(null);
   const [localLogs, setLocalLogs] = useState<Record<string, LogEntry>>({});
   const [savedKeys, setSavedKeys] = useState<Set<string>>(new Set());
+  const [activeTimer, setActiveTimer] = useState<{ exId: string; seconds: number } | null>(null);
 
   const { data: clientProfile } = useQuery({
     queryKey: ['my-client-profile-training', user?.id],
