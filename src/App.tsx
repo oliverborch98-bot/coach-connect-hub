@@ -37,6 +37,7 @@ import ClientBodyMeasurements from "@/pages/client/BodyMeasurements";
 import ClientResources from "@/pages/client/Resources";
 import ClientTransformation from "@/pages/client/Transformation";
 import ClientAIChat from "@/pages/client/AIChat";
+import ClientLeaderboard from "@/pages/client/Leaderboard";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -152,6 +153,7 @@ function ClientRoutes() {
         <Route path="/client/resources" element={<ClientResources />} />
         <Route path="/client/transformation" element={<ClientTransformation />} />
         <Route path="/client/ai" element={<ClientAIChat />} />
+        <Route path="/client/leaderboard" element={<ClientLeaderboard />} />
       </Route>
       <Route path="/" element={<Navigate to="/client" replace />} />
       <Route path="*" element={<Navigate to="/client" replace />} />
