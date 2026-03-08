@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard } from 'lucide-react';
+import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard, ClipboardList } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -107,6 +107,27 @@ export default function CoachClientDetail() {
     }
   };
 
+  const { data: onboarding } = useQuery({
+    queryKey: ['client-onboarding', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('onboarding_responses')
+        .select('*')
+        .eq('client_id', id!)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const goalLabels: Record<string, string> = {
+    fat_loss: '🔥 Fedttab',
+    muscle_gain: '💪 Muskelvækst',
+    recomp: '🔄 Recomp',
+    health: '❤️ Generel sundhed',
+    performance: '⚡ Præstation',
+  };
+
   const renderOverview = () => (
     <div className="space-y-4">
       <div className="rounded-xl border border-border bg-card p-5 grid md:grid-cols-3 gap-4">
@@ -124,6 +145,33 @@ export default function CoachClientDetail() {
           </div>
         ))}
       </div>
+
+      {/* Onboarding responses */}
+      {onboarding && (
+        <div className="rounded-xl border border-border bg-card p-5">
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <ClipboardList className="h-4 w-4 text-primary" /> Onboarding-svar
+          </h3>
+          <div className="grid md:grid-cols-2 gap-3">
+            {[
+              { label: 'Primært mål', value: goalLabels[(onboarding as any).primary_goal] ?? (onboarding as any).primary_goal },
+              { label: 'Erfaringsniveau', value: (onboarding as any).experience_level },
+              { label: 'Udstyr', value: ((onboarding as any).equipment as string[])?.join(', ') },
+              { label: 'Kostrestriktioner', value: (onboarding as any).dietary_restrictions },
+              { label: 'Arbejde', value: (onboarding as any).work_situation },
+              { label: 'Søvn', value: (onboarding as any).sleep_hours ? `${(onboarding as any).sleep_hours} timer` : null },
+              { label: 'Stressniveau', value: (onboarding as any).stress_level ? `${(onboarding as any).stress_level}/10` : null },
+              { label: 'Skader/begrænsninger', value: (onboarding as any).injury_history },
+              { label: 'Ekstra noter', value: (onboarding as any).additional_notes },
+            ].filter(item => item.value).map(item => (
+              <div key={item.label} className="rounded-lg bg-secondary p-3">
+                <p className="text-[10px] text-muted-foreground uppercase">{item.label}</p>
+                <p className="text-sm mt-0.5">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {startW > 0 && goalW > 0 && (
         <div className="rounded-xl border border-border bg-card p-5">

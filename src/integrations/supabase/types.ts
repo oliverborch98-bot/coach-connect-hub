@@ -720,6 +720,71 @@ export type Database = {
           },
         ]
       }
+      onboarding_responses: {
+        Row: {
+          additional_notes: string | null
+          age: number | null
+          client_id: string
+          completed_at: string | null
+          created_at: string | null
+          dietary_restrictions: string | null
+          equipment: string[] | null
+          experience_level: string | null
+          full_name: string | null
+          id: string
+          injury_history: string | null
+          phone: string | null
+          primary_goal: string | null
+          sleep_hours: number | null
+          stress_level: number | null
+          work_situation: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          age?: number | null
+          client_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          dietary_restrictions?: string | null
+          equipment?: string[] | null
+          experience_level?: string | null
+          full_name?: string | null
+          id?: string
+          injury_history?: string | null
+          phone?: string | null
+          primary_goal?: string | null
+          sleep_hours?: number | null
+          stress_level?: number | null
+          work_situation?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          age?: number | null
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          dietary_restrictions?: string | null
+          equipment?: string[] | null
+          experience_level?: string | null
+          full_name?: string | null
+          id?: string
+          injury_history?: string | null
+          phone?: string | null
+          primary_goal?: string | null
+          sleep_hours?: number | null
+          stress_level?: number | null
+          work_situation?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_responses_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "client_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_events: {
         Row: {
           amount_dkk: number | null
