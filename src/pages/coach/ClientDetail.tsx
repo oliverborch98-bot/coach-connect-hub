@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard, ClipboardList } from 'lucide-react';
+import { ArrowLeft, MessageSquare, StickyNote, Phone, TrendingUp, Camera, Target, CheckSquare, FileText, Loader2, Dumbbell, UtensilsCrossed, FolderOpen, CreditCard, ClipboardList, Ruler } from 'lucide-react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import ClientNutritionTab from '@/components/coach/ClientNutritionTab';
 import ClientDocumentsTab from '@/components/coach/ClientDocumentsTab';
 import ClientPaymentTab from '@/components/coach/ClientPaymentTab';
 import ClientCheckinsTab from '@/components/coach/ClientCheckinsTab';
+import ClientMeasurementsTab from '@/components/coach/ClientMeasurementsTab';
 
 const tabs = [
   { id: 'overview', label: 'Oversigt', icon: TrendingUp },
@@ -25,6 +26,7 @@ const tabs = [
   { id: 'habits', label: 'Habits', icon: CheckSquare },
   { id: 'notes', label: 'Noter', icon: StickyNote },
   { id: 'documents', label: 'Dokumenter', icon: FolderOpen },
+  { id: 'measurements', label: 'Målinger', icon: Ruler },
   { id: 'payment', label: 'Betaling', icon: CreditCard },
   { id: 'messages', label: 'Beskeder', icon: MessageSquare },
 ];
@@ -102,6 +104,7 @@ export default function CoachClientDetail() {
       case 'documents': return <ClientDocumentsTab clientId={id!} />;
       case 'payment': return <ClientPaymentTab clientId={id!} />;
       case 'checkins': return <ClientCheckinsTab clientId={id!} />;
+      case 'measurements': return <ClientMeasurementsTab clientId={id!} />;
       case 'overview': return renderOverview();
       default: return null;
     }
