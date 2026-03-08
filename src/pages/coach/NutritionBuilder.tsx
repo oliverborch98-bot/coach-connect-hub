@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, Loader2, Save, UtensilsCrossed, Sparkles, ChefHat } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,11 +32,13 @@ export default function NutritionBuilder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedClient = searchParams.get('client') ?? '';
+  const editId = searchParams.get('edit');
   const qc = useQueryClient();
 
   const [clientId, setClientId] = useState(preselectedClient);
   const [planName, setPlanName] = useState('');
   const [phase, setPhase] = useState('foundation');
+  const [isTemplate, setIsTemplate] = useState(false);
   const [caloriesTarget, setCaloriesTarget] = useState<number | ''>('');
   const [proteinG, setProteinG] = useState<number | ''>('');
   const [carbsG, setCarbsG] = useState<number | ''>('');
@@ -44,6 +46,40 @@ export default function NutritionBuilder() {
   const [notes, setNotes] = useState('');
   const [meals, setMeals] = useState<MealDraft[]>([emptyMeal(0)]);
   const [aiLoading, setAiLoading] = useState(false);
+  const [loaded, setLoaded] = useState(!editId);
+
+  // Load existing plan for editing
+  useEffect(() => {
+    if (!editId) return;
+    (async () => {
+      const { data: plan } = await supabase.from('nutrition_plans').select('*').eq('id', editId).single();
+      if (!plan) { toast.error('Plan ikke fundet'); navigate(-1); return; }
+      setPlanName(plan.name);
+      setPhase(plan.phase ?? 'foundation');
+      setClientId(plan.client_id ?? '');
+      setIsTemplate(plan.is_template ?? false);
+      setCaloriesTarget(plan.calories_target ?? '');
+      setProteinG(plan.protein_g ?? '');
+      setCarbsG(plan.carbs_g ?? '');
+      setFatG(plan.fat_g ?? '');
+      setNotes(plan.notes ?? '');
+
+      const { data: dbMeals } = await supabase.from('meals').select('*').eq('plan_id', editId).order('meal_order');
+      if (dbMeals && dbMeals.length > 0) {
+        setMeals(dbMeals.map(m => ({
+          id: m.id,
+          meal_name: m.meal_name,
+          description: m.description ?? '',
+          calories: m.calories ?? '',
+          protein_g: m.protein_g ?? '',
+          carbs_g: m.carbs_g ?? '',
+          fat_g: m.fat_g ?? '',
+          recipe_id: m.recipe_id ?? null,
+        })));
+      }
+      setLoaded(true);
+    })();
+  }, [editId]);
 
   const generateWithAI = async () => {
     if (!clientId) { toast.error('Vælg en klient først'); return; }
@@ -51,7 +87,6 @@ export default function NutritionBuilder() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
       const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-nutrition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -74,6 +109,7 @@ export default function NutritionBuilder() {
           protein_g: m.proteinG ?? '',
           carbs_g: m.carbsG ?? '',
           fat_g: m.fatG ?? '',
+          recipe_id: null,
         })));
       }
       toast.success('AI-kostplan genereret! Gennemgå og gem.');
@@ -81,27 +117,19 @@ export default function NutritionBuilder() {
     setAiLoading(false);
   };
 
-  // Fetch clients
   const { data: clients = [] } = useQuery({
     queryKey: ['coach-clients-list'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_profiles')
-        .select('id, profiles!client_profiles_user_id_fkey(full_name)')
-        .eq('status', 'active');
+      const { data, error } = await supabase.from('client_profiles').select('id, profiles!client_profiles_user_id_fkey(full_name)').eq('status', 'active');
       if (error) throw error;
       return data as any[];
     },
   });
 
-  // Fetch recipes
   const { data: recipes = [] } = useQuery({
     queryKey: ['recipes-list'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('recipes')
-        .select('id, title, calories, protein_g, carbs_g, fat_g')
-        .order('title');
+      const { data, error } = await supabase.from('recipes').select('id, title, calories, protein_g, carbs_g, fat_g').order('title');
       if (error) throw error;
       return data;
     },
@@ -109,49 +137,54 @@ export default function NutritionBuilder() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!clientId) throw new Error('Vælg en klient');
+      if (!clientId && !isTemplate) throw new Error('Vælg en klient eller markér som skabelon');
       if (!planName.trim()) throw new Error('Angiv plannavn');
 
-      // 1. Create plan
-      const { data: plan, error: pErr } = await supabase
-        .from('nutrition_plans')
-        .insert({
-          client_id: clientId,
-          name: planName,
-          phase: phase || null,
-          calories_target: caloriesTarget || null,
-          protein_g: proteinG || null,
-          carbs_g: carbsG || null,
-          fat_g: fatG || null,
-          notes: notes || null,
-          meals_per_day: meals.length,
-          status: 'active',
-        })
-        .select('id')
-        .single();
-      if (pErr) throw pErr;
+      const planData = {
+        client_id: isTemplate ? null : clientId,
+        name: planName,
+        phase: phase || null,
+        calories_target: caloriesTarget || null,
+        protein_g: proteinG || null,
+        carbs_g: carbsG || null,
+        fat_g: fatG || null,
+        notes: notes || null,
+        meals_per_day: meals.length,
+        is_template: isTemplate,
+      };
 
-      // 2. Create meals
-      const mealInserts = meals.map((m, i) => ({
-        plan_id: plan.id,
-        meal_name: m.meal_name,
-        meal_order: i,
-        description: m.description || null,
-        calories: m.calories || null,
-        protein_g: m.protein_g || null,
-        carbs_g: m.carbs_g || null,
-        fat_g: m.fat_g || null,
-        recipe_id: m.recipe_id || null,
-      }));
-
-      if (mealInserts.length > 0) {
-        const { error: mErr } = await supabase.from('meals').insert(mealInserts);
-        if (mErr) throw mErr;
+      if (editId) {
+        await supabase.from('nutrition_plans').update({ ...planData, status: 'active' }).eq('id', editId);
+        await supabase.from('meals').delete().eq('plan_id', editId);
+        const mealInserts = meals.map((m, i) => ({
+          plan_id: editId, meal_name: m.meal_name, meal_order: i,
+          description: m.description || null, calories: m.calories || null,
+          protein_g: m.protein_g || null, carbs_g: m.carbs_g || null, fat_g: m.fat_g || null,
+          recipe_id: m.recipe_id || null,
+        }));
+        if (mealInserts.length > 0) {
+          const { error: mErr } = await supabase.from('meals').insert(mealInserts);
+          if (mErr) throw mErr;
+        }
+      } else {
+        const { data: plan, error: pErr } = await supabase.from('nutrition_plans').insert({ ...planData, status: 'active' }).select('id').single();
+        if (pErr) throw pErr;
+        const mealInserts = meals.map((m, i) => ({
+          plan_id: plan.id, meal_name: m.meal_name, meal_order: i,
+          description: m.description || null, calories: m.calories || null,
+          protein_g: m.protein_g || null, carbs_g: m.carbs_g || null, fat_g: m.fat_g || null,
+          recipe_id: m.recipe_id || null,
+        }));
+        if (mealInserts.length > 0) {
+          const { error: mErr } = await supabase.from('meals').insert(mealInserts);
+          if (mErr) throw mErr;
+        }
       }
     },
     onSuccess: () => {
-      toast.success('Kostplan oprettet!');
+      toast.success(editId ? 'Kostplan opdateret!' : 'Kostplan oprettet!');
       qc.invalidateQueries({ queryKey: ['coach-clients-list'] });
+      qc.invalidateQueries({ queryKey: ['coach-client-nutrition'] });
       navigate(clientId ? `/coach/client/${clientId}` : '/coach');
     },
     onError: (err: any) => toast.error(err.message ?? 'Fejl ved oprettelse'),
@@ -162,16 +195,17 @@ export default function NutritionBuilder() {
   const updateMeal = (id: string, field: string, value: any) =>
     setMeals(prev => prev.map(m => m.id === id ? { ...m, [field]: value } : m));
 
+  if (!loaded) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+
   return (
     <div className="space-y-6 max-w-4xl">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-secondary transition-colors">
           <ArrowLeft className="h-5 w-5 text-muted-foreground" />
         </button>
         <div>
-          <h1 className="text-xl font-bold">Ny Kostplan</h1>
-          <p className="text-sm text-muted-foreground">Opret makromål og måltider til en klient</p>
+          <h1 className="text-xl font-bold">{editId ? 'Redigér Kostplan' : 'Ny Kostplan'}</h1>
+          <p className="text-sm text-muted-foreground">{editId ? 'Opdatér kostplanen' : 'Opret makromål og måltider til en klient'}</p>
         </div>
         <button onClick={generateWithAI} disabled={aiLoading || !clientId}
           className="ml-auto flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50">
@@ -180,15 +214,11 @@ export default function NutritionBuilder() {
         </button>
       </div>
 
-      {/* Meta */}
       <div className="rounded-xl border border-border bg-card p-5 grid md:grid-cols-3 gap-4">
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Klient</label>
-          <select
-            value={clientId}
-            onChange={e => setClientId(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          >
+          <select value={clientId} onChange={e => setClientId(e.target.value)} disabled={isTemplate}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm disabled:opacity-50">
             <option value="">Vælg klient...</option>
             {clients.map((c: any) => (
               <option key={c.id} value={c.id}>{c.profiles?.full_name ?? 'Ukendt'}</option>
@@ -197,171 +227,92 @@ export default function NutritionBuilder() {
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Plannavn</label>
-          <input
-            value={planName}
-            onChange={e => setPlanName(e.target.value)}
-            placeholder="F.eks. Bulking Plan"
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          />
+          <input value={planName} onChange={e => setPlanName(e.target.value)} placeholder="F.eks. Bulking Plan"
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
         </div>
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Fase</label>
-          <select
-            value={phase}
-            onChange={e => setPhase(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          >
+          <select value={phase} onChange={e => setPhase(e.target.value)}
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm">
             <option value="foundation">Foundation</option>
             <option value="acceleration">Acceleration</option>
             <option value="transformation">Transformation</option>
           </select>
         </div>
+        <div className="md:col-span-3 flex items-center gap-2">
+          <input type="checkbox" id="is-template-n" checked={isTemplate} onChange={e => setIsTemplate(e.target.checked)}
+            className="rounded border-border" />
+          <label htmlFor="is-template-n" className="text-xs text-muted-foreground">Gem som skabelon (template)</label>
+        </div>
       </div>
 
-      {/* Macro Targets */}
       <div className="rounded-xl border border-border bg-card p-5">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
           <UtensilsCrossed className="h-4 w-4 text-primary" /> Daglige makromål
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Kalorier</label>
-            <input
-              type="number"
-              value={caloriesTarget}
-              onChange={e => setCaloriesTarget(e.target.value ? Number(e.target.value) : '')}
-              placeholder="2400"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-center"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Protein (g)</label>
-            <input
-              type="number"
-              value={proteinG}
-              onChange={e => setProteinG(e.target.value ? Number(e.target.value) : '')}
-              placeholder="180"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-center"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Kulhydrater (g)</label>
-            <input
-              type="number"
-              value={carbsG}
-              onChange={e => setCarbsG(e.target.value ? Number(e.target.value) : '')}
-              placeholder="280"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-center"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-[10px] text-muted-foreground uppercase tracking-wide">Fedt (g)</label>
-            <input
-              type="number"
-              value={fatG}
-              onChange={e => setFatG(e.target.value ? Number(e.target.value) : '')}
-              placeholder="70"
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-center"
-            />
-          </div>
+          {[
+            { label: 'Kalorier', value: caloriesTarget, set: setCaloriesTarget, ph: '2400' },
+            { label: 'Protein (g)', value: proteinG, set: setProteinG, ph: '180' },
+            { label: 'Kulhydrater (g)', value: carbsG, set: setCarbsG, ph: '280' },
+            { label: 'Fedt (g)', value: fatG, set: setFatG, ph: '70' },
+          ].map(f => (
+            <div key={f.label} className="space-y-1.5">
+              <label className="text-[10px] text-muted-foreground uppercase tracking-wide">{f.label}</label>
+              <input type="number" value={f.value} onChange={e => f.set(e.target.value ? Number(e.target.value) : '')} placeholder={f.ph}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-center" />
+            </div>
+          ))}
         </div>
         <div className="mt-4 space-y-1.5">
           <label className="text-xs font-medium text-muted-foreground">Noter</label>
-          <textarea
-            value={notes}
-            onChange={e => setNotes(e.target.value)}
-            rows={2}
-            placeholder="Evt. noter til klienten..."
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none"
-          />
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Evt. noter til klienten..."
+            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm resize-none" />
         </div>
       </div>
 
-      {/* Meals */}
       <div className="space-y-4">
         <h3 className="text-sm font-semibold">Måltider</h3>
         <AnimatePresence>
-          {meals.map((meal, i) => (
-            <motion.div
-              key={meal.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="rounded-xl border border-border bg-card p-4"
-            >
+          {meals.map((meal) => (
+            <motion.div key={meal.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              className="rounded-xl border border-border bg-card p-4">
               <div className="flex items-center justify-between mb-3">
-                <input
-                  value={meal.meal_name}
-                  onChange={e => updateMeal(meal.id, 'meal_name', e.target.value)}
-                  className="bg-transparent text-sm font-semibold focus:outline-none border-b border-transparent focus:border-primary"
-                />
+                <input value={meal.meal_name} onChange={e => updateMeal(meal.id, 'meal_name', e.target.value)}
+                  className="bg-transparent text-sm font-semibold focus:outline-none border-b border-transparent focus:border-primary" />
                 {meals.length > 1 && (
                   <button onClick={() => removeMeal(meal.id)} className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 )}
               </div>
-
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                <div className="col-span-2 md:col-span-1">
-                  <label className="text-[10px] text-muted-foreground">Kcal</label>
-                  <input
-                    type="number"
-                    value={meal.calories}
-                    onChange={e => updateMeal(meal.id, 'calories', e.target.value ? Number(e.target.value) : '')}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-center"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-muted-foreground">Protein</label>
-                  <input
-                    type="number"
-                    value={meal.protein_g}
-                    onChange={e => updateMeal(meal.id, 'protein_g', e.target.value ? Number(e.target.value) : '')}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-center"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-muted-foreground">Kulhydrat</label>
-                  <input
-                    type="number"
-                    value={meal.carbs_g}
-                    onChange={e => updateMeal(meal.id, 'carbs_g', e.target.value ? Number(e.target.value) : '')}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-center"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-muted-foreground">Fedt</label>
-                  <input
-                    type="number"
-                    value={meal.fat_g}
-                    onChange={e => updateMeal(meal.id, 'fat_g', e.target.value ? Number(e.target.value) : '')}
-                    className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-center"
-                  />
-                </div>
+                {[
+                  { key: 'calories', label: 'Kcal' },
+                  { key: 'protein_g', label: 'Protein' },
+                  { key: 'carbs_g', label: 'Kulhydrat' },
+                  { key: 'fat_g', label: 'Fedt' },
+                ].map(f => (
+                  <div key={f.key} className={f.key === 'calories' ? 'col-span-2 md:col-span-1' : ''}>
+                    <label className="text-[10px] text-muted-foreground">{f.label}</label>
+                    <input type="number" value={(meal as any)[f.key]}
+                      onChange={e => updateMeal(meal.id, f.key, e.target.value ? Number(e.target.value) : '')}
+                      className="w-full rounded-lg border border-border bg-background px-2 py-1.5 text-xs text-center" />
+                  </div>
+                ))}
               </div>
-
               <div className="mt-2 space-y-1">
                 <label className="text-[10px] text-muted-foreground">Beskrivelse</label>
-                <textarea
-                  value={meal.description}
-                  onChange={e => updateMeal(meal.id, 'description', e.target.value)}
-                  rows={2}
+                <textarea value={meal.description} onChange={e => updateMeal(meal.id, 'description', e.target.value)} rows={2}
                   placeholder="F.eks. 200g kylling, 150g ris, grøntsager..."
-                  className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs resize-none"
-                />
+                  className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs resize-none" />
               </div>
-
-              {/* Recipe picker */}
               <div className="mt-2 space-y-1">
                 <label className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <ChefHat className="h-3 w-3" /> Link opskrift
                 </label>
-                <select
-                  value={meal.recipe_id ?? ''}
-                  onChange={e => updateMeal(meal.id, 'recipe_id', e.target.value || null)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs"
-                >
+                <select value={meal.recipe_id ?? ''} onChange={e => updateMeal(meal.id, 'recipe_id', e.target.value || null)}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-1.5 text-xs">
                   <option value="">Ingen opskrift</option>
                   {recipes.map(r => (
                     <option key={r.id} value={r.id}>{r.title}{r.calories ? ` (${r.calories} kcal)` : ''}</option>
@@ -371,30 +322,21 @@ export default function NutritionBuilder() {
             </motion.div>
           ))}
         </AnimatePresence>
-
-        <button
-          onClick={addMeal}
-          className="w-full rounded-xl border-2 border-dashed border-border py-3 text-sm text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors flex items-center justify-center gap-2"
-        >
+        <button onClick={addMeal}
+          className="w-full rounded-xl border-2 border-dashed border-border py-3 text-sm text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors flex items-center justify-center gap-2">
           <Plus className="h-4 w-4" /> Tilføj måltid
         </button>
       </div>
 
-      {/* Save */}
       <div className="flex justify-end gap-3 pb-8">
-        <button
-          onClick={() => navigate(-1)}
-          className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors"
-        >
+        <button onClick={() => navigate(-1)}
+          className="px-4 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:bg-secondary transition-colors">
           Annuller
         </button>
-        <button
-          onClick={() => saveMutation.mutate()}
-          disabled={saveMutation.isPending}
-          className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50"
-        >
+        <button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}
+          className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50">
           {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Gem kostplan
+          {editId ? 'Opdatér kostplan' : 'Gem kostplan'}
         </button>
       </div>
     </div>
