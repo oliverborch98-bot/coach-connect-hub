@@ -35,6 +35,23 @@ export default function Login() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+      toast.success('Nulstillingslink sendt!');
+    } catch (err: any) {
+      toast.error(err.message || 'Kunne ikke sende nulstillingslink');
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
+
   const handleRequestAccess = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmittingRequest(true);
