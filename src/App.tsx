@@ -22,6 +22,7 @@ import PaymentDashboard from "@/pages/coach/PaymentDashboard";
 import AIProgramBuilder from "@/pages/coach/AIProgramBuilder";
 import AINutritionBuilder from "@/pages/coach/AINutritionBuilder";
 import RecipeLibrary from "@/pages/coach/RecipeLibrary";
+import AccessRequests from "@/pages/coach/AccessRequests";
 import OnboardingWizard from "@/pages/client/OnboardingWizard";
 import ClientDashboard from "@/pages/client/Dashboard";
 import ClientCheckIn from "@/pages/client/CheckIn";
