@@ -2,13 +2,17 @@ import { UserPlus, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 export default function CoachNewClient() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', age: '',
+    name: searchParams.get('name') || '',
+    email: searchParams.get('email') || '',
+    phone: searchParams.get('phone') || '',
+    age: '',
     startDate: '', startWeight: '', goalWeight: '', primaryGoal: '',
     packageType: 'the_system',
     alreadyPaid: false,
