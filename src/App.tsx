@@ -41,6 +41,7 @@ import ClientAIChat from "@/pages/client/AIChat";
 import ClientLeaderboard from "@/pages/client/Leaderboard";
 import ClientGuide from "@/pages/client/Guide";
 import ChangePassword from "@/pages/client/ChangePassword";
+import ResetPassword from "@/pages/ResetPassword";
 import NotFound from "@/pages/NotFound";
 import { Loader2 } from "lucide-react";
 
