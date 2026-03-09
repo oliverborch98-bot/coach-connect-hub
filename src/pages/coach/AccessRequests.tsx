@@ -68,8 +68,27 @@ export default function AccessRequests() {
     navigate(`/coach/new-client?name=${encodeURIComponent(req.name)}&email=${encodeURIComponent(req.email)}&phone=${encodeURIComponent(req.phone || '')}`);
   };
 
-  const handleReject = (req: AccessRequest) => {
+  const handleReject = async (req: AccessRequest) => {
     updateStatus.mutate({ id: req.id, status: 'rejected' });
+
+    try {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: req.email,
+          subject: 'Vedrørende din anmodning',
+          html: `
+            <h2 style="color:#D4A853;font-size:18px;margin-top:0">Hej ${req.name},</h2>
+            <p>Tak for din interesse i The Build Method.</p>
+            <p>Desværre har vi ikke mulighed for at tilbyde dig en plads på nuværende tidspunkt.</p>
+            <p>Det kan skyldes, at vi har fuldt booket lige nu, men du er altid velkommen til at søge igen på et senere tidspunkt.</p>
+            <p style="color:#888;font-size:13px;margin-top:24px">Med venlig hilsen,<br/>Oliver Borch</p>
+          `,
+        },
+      });
+    } catch (e) {
+      console.error('Rejection email failed:', e);
+    }
+
     toast.info(`${req.name} afvist`);
   };
 
