@@ -43,8 +43,27 @@ export default function AccessRequests() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['access-requests'] }),
   });
 
-  const handleApprove = (req: AccessRequest) => {
+  const handleApprove = async (req: AccessRequest) => {
     updateStatus.mutate({ id: req.id, status: 'approved' });
+
+    // Send approval email to the requester
+    try {
+      await supabase.functions.invoke('send-email', {
+        body: {
+          to: req.email,
+          subject: 'Din adgangsanmodning er godkendt! 🎉',
+          html: `
+            <h2 style="color:#D4A853;font-size:18px;margin-top:0">Velkommen ombord, ${req.name}!</h2>
+            <p>Din anmodning om adgang til The Build Method er blevet godkendt.</p>
+            <p>Du vil snart modtage en separat email med dine login-oplysninger, så du kan komme i gang.</p>
+            <p style="color:#888;font-size:13px;margin-top:24px">Vi glæder os til at hjælpe dig med at nå dine mål!</p>
+          `,
+        },
+      });
+    } catch (e) {
+      console.error('Approval email failed:', e);
+    }
+
     toast.success(`${req.name} godkendt — opret klienten nu`);
     navigate(`/coach/new-client?name=${encodeURIComponent(req.name)}&email=${encodeURIComponent(req.email)}&phone=${encodeURIComponent(req.phone || '')}`);
   };
