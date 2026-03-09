@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Eye, EyeOff, ArrowLeft, Send } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ArrowLeft, Send, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
