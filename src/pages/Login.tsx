@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Eye, EyeOff, ArrowLeft, Send } from 'lucide-react';
+import { Loader2, Eye, EyeOff, ArrowLeft, Send, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -12,6 +12,10 @@ export default function Login() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showRequestForm, setShowRequestForm] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   // Request form state
   const [reqName, setReqName] = useState('');
@@ -28,6 +32,23 @@ export default function Login() {
       await signIn(email, password);
     } catch (err: any) {
       setError(err.message);
+    }
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+      toast.success('Nulstillingslink sendt!');
+    } catch (err: any) {
+      toast.error(err.message || 'Kunne ikke sende nulstillingslink');
+    } finally {
+      setIsSendingReset(false);
     }
   };
 
@@ -120,6 +141,14 @@ export default function Login() {
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {isLoading ? 'Logger ind...' : 'Log ind'}
                 </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setShowForgotPassword(true); setForgotEmail(email); }}
+                  className="w-full text-xs text-muted-foreground hover:text-primary transition-colors mt-1"
+                >
+                  Glemt password?
+                </button>
               </form>
 
               <div className="mt-4 text-center">
@@ -130,6 +159,70 @@ export default function Login() {
                   Har du ikke en konto? <span className="text-primary font-medium">Anmod om adgang</span>
                 </button>
               </div>
+            </motion.div>
+          ) : showForgotPassword && !showRequestForm ? (
+            <motion.div
+              key="forgot"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              {resetSent ? (
+                <div className="bg-card rounded-xl border border-border p-6 text-center space-y-4">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <Mail className="h-5 w-5 text-primary" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground">Tjek din email</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Vi har sendt et link til <strong className="text-foreground">{forgotEmail}</strong> hvor du kan nulstille dit password.
+                  </p>
+                  <button
+                    onClick={() => { setShowForgotPassword(false); setResetSent(false); }}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Tilbage til login
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4 bg-card rounded-xl border border-border p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(false)}
+                      className="text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+                    <h2 className="text-sm font-semibold text-foreground">Nulstil password</h2>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Indtast din email, og vi sender dig et link til at nulstille dit password.
+                  </p>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-foreground">Email</label>
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-secondary px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="din@email.dk"
+                      required
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSendingReset}
+                    className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isSendingReset ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                    {isSendingReset ? 'Sender...' : 'Send nulstillingslink'}
+                  </button>
+                </form>
+              )}
             </motion.div>
           ) : (
             <motion.div
