@@ -199,7 +199,10 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
-          <AppRoutes />
+          <Routes>
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="*" element={<AppRoutes />} />
+          </Routes>
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
