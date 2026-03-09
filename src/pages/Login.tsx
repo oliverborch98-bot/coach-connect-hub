@@ -179,6 +179,7 @@ export default function Login() {
                 </button>
               </div>
             </motion.div>
+          ) : showForgotPassword && !showRequestForm ? (
             <motion.div
               key="forgot"
               initial={{ opacity: 0, scale: 0.95 }}
