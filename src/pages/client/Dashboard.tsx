@@ -1,11 +1,12 @@
-import { motion } from 'framer-motion';
-import { Target, Zap, ArrowRight, Calendar, CreditCard, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Target, Zap, ArrowRight, Calendar, CreditCard, AlertTriangle, Sparkles, TrendingUp, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import PremiumCard from '@/components/PremiumCard';
 
 const packageLabels: Record<string, string> = {
   the_system: 'The System',
@@ -76,133 +77,189 @@ export default function ClientDashboard() {
   const nextPayment = subscription?.current_period_end ? new Date(subscription.current_period_end) : null;
 
   return (
-    <div className="space-y-5 max-w-lg mx-auto">
-      {/* Payment Status Widget */}
-      {isPastDue && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 flex items-center gap-3"
+    <div className="space-y-8 max-w-lg mx-auto pb-12">
+      <header>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 mb-2"
         >
-          <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-destructive">Betaling mangler</p>
-            <p className="text-xs text-muted-foreground">Din seneste betaling fejlede. Betal nu eller opdatér din betalingsmetode.</p>
-          </div>
-          <div className="flex gap-2 shrink-0">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/80">Velkommen</span>
+        </motion.div>
+        <motion.h1
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="text-3xl font-black tracking-tighter"
+        >
+          Din <span className="gold-text">Progression</span>
+        </motion.h1>
+      </header>
+
+      {/* Payment Status Widget */}
+      <AnimatePresence>
+        {isPastDue && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="rounded-2xl border border-destructive/30 bg-destructive/10 backdrop-blur-md p-5 flex items-center gap-4 relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 w-1 h-full bg-destructive" />
+            <AlertTriangle className="h-6 w-6 text-destructive shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-black uppercase tracking-tight text-destructive">Betaling mangler</p>
+              <p className="text-xs text-muted-foreground font-medium mt-0.5">Din seneste betaling fejlede. Opdatér nu.</p>
+            </div>
             <button onClick={async () => {
               try {
                 const { data, error } = await supabase.functions.invoke('customer-portal');
                 if (error) throw error;
                 if (data?.url) window.open(data.url, '_blank');
-              } catch {}
-            }} className="px-3 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-medium hover:bg-destructive/90 transition-colors">
-              Betal nu
+              } catch { }
+            }} className="px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-[10px] font-black uppercase tracking-widest hover:bg-destructive/90 transition-all shadow-lg active:scale-95">
+              Betal
             </button>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Payment info widget */}
-      {!isPastDue && subscription && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-border bg-card p-4 flex items-center gap-3"
-        >
-          <CreditCard className="h-5 w-5 text-primary shrink-0" />
-          <div className="flex-1">
-            <p className="text-xs text-muted-foreground">Abonnement</p>
-            <p className="text-sm font-medium capitalize">{subscription.status === 'active' ? 'Aktivt' : subscription.status}</p>
-          </div>
-          {nextPayment && (
-            <div className="text-right">
-              <p className="text-[10px] text-muted-foreground">Næste betaling</p>
-              <p className="text-xs font-medium">{format(nextPayment, 'd. MMM', { locale: da })}</p>
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      {/* Status Card */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="rounded-xl border border-border bg-card p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">{packageLabels[packageType] ?? packageType}</p>
-            <p className="text-lg font-bold text-primary capitalize">{phase}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-extrabold">{month}<span className="text-sm font-normal text-muted-foreground">/6</span></p>
-            <p className="text-xs text-muted-foreground">måneder</p>
-          </div>
-        </div>
-        <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <div className="h-full gold-gradient rounded-full transition-all" style={{ width: `${phasePct}%` }} />
-        </div>
-
-        {/* Program end date */}
-        {clientProfile?.binding_end && (
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Calendar className="h-3.5 w-3.5" />
-              Forløb slutter: <span className="text-foreground font-medium">{format(new Date(clientProfile.binding_end), 'd. MMMM yyyy', { locale: da })}</span>
-            </div>
-            <span className="text-foreground font-medium">
-              {Math.max(0, Math.ceil((new Date(clientProfile.binding_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} dage tilbage
-            </span>
-          </div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Calendar className="h-3.5 w-3.5" />
-          Næste check-in: <span className="text-foreground font-medium">{nextCheckinStr}</span>
-        </div>
-      </motion.div>
-
-      {/* Goals */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
-          <Target className="h-4 w-4 text-primary" /> Dine mål
-        </h2>
-        {goals.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card p-4 text-center">
-            <p className="text-sm text-muted-foreground">Ingen mål sat endnu</p>
+      {/* Status Highlights */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="glass-morphism p-5 rounded-2xl relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-5">
+            <Trophy className="h-16 w-16 text-primary" />
           </div>
-        ) : (
-          goals.map((goal) => {
-            const current = Number(goal.current_value) || 0;
-            const target = Number(goal.target_value) || 1;
-            const pct = Math.min(100, Math.round((current / target) * 100));
-            return (
-              <div key={goal.id} className="rounded-xl border border-border bg-card p-4">
-                <div className="flex justify-between text-sm mb-2">
-                  <span className="font-medium">{goal.title}</span>
-                  <span className="text-muted-foreground">{current}/{target} {goal.unit}</span>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">Måned</p>
+          <div className="flex items-end gap-1.5">
+            <span className="text-3xl font-black tracking-tighter text-glow">{month}</span>
+            <span className="text-xs font-bold text-muted-foreground/40 mb-1.5 uppercase tracking-tighter">af 6</span>
+          </div>
+        </div>
+        <div className="glass-morphism p-5 rounded-2xl relative overflow-hidden">
+          <div className="absolute -right-4 -top-4 opacity-5">
+            <TrendingUp className="h-16 w-16 text-primary" />
+          </div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">Fase</p>
+          <span className="text-xl font-black uppercase tracking-tighter gold-text">{phase}</span>
+        </div>
+      </div>
+
+      {/* Main Status Container */}
+      <PremiumCard
+        title="Næste Skridt"
+        subtitle={`Næste check-in: ${nextCheckinStr}`}
+      >
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <div className="flex justify-between items-end px-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/80">Samlet Progression</span>
+              <span className="text-xs font-black text-primary">{phasePct}%</span>
+            </div>
+            <div className="h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${phasePct}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full gold-gradient rounded-full shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3">
+            {[
+              { label: 'Check-in slutter om', value: '4 dage', icon: Calendar },
+              { label: 'Abonnement status', value: subStatus === 'active' ? 'Aktivt' : 'Afventer', icon: CreditCard },
+            ].map(item => (
+              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <item.icon className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                  <div className="h-full gold-gradient rounded-full" style={{ width: `${pct}%` }} />
+                <div className="flex-1">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{item.label}</p>
+                  <p className="text-xs font-black text-foreground uppercase tracking-tight">{item.value}</p>
                 </div>
               </div>
-            );
-          })
-        )}
-      </motion.div>
+            ))}
+          </div>
+        </div>
+      </PremiumCard>
 
-      {/* Quick Links */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-3">
-        <h2 className="text-sm font-semibold flex items-center gap-2">
-          <Zap className="h-4 w-4 text-primary" /> Hurtige handlinger
+      {/* Goals Section */}
+      <div className="space-y-4">
+        <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/80 flex items-center gap-2 px-1">
+          <Target className="h-3.5 w-3.5 text-glow shadow-primary" /> Aktive Mål
         </h2>
-        {[
-          { label: 'Udfyld check-in', to: '/client/checkin' },
-          { label: 'Daglige habits', to: '/client/habits' },
-        ].map(link => (
-          <button
-            key={link.to}
-            onClick={() => navigate(link.to)}
-            className="w-full flex items-center justify-between rounded-xl border border-border bg-card p-4 text-sm font-medium hover:border-primary/30 transition-colors"
-          >
-            {link.label}
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-          </button>
-        ))}
-      </motion.div>
+
+        {goals.length === 0 ? (
+          <div className="glass-morphism p-8 rounded-2xl text-center border-dashed border-white/10">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-widest">Ingen aktive mål</p>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {goals.map((goal, idx) => {
+              const current = Number(goal.current_value) || 0;
+              const target = Number(goal.target_value) || 1;
+              const pct = Math.min(100, Math.round((current / target) * 100));
+              return (
+                <motion.div
+                  key={goal.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + (idx * 0.05) }}
+                  className="glass-morphism p-5 rounded-2xl group hover:border-primary/20 transition-all duration-300"
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="font-black uppercase tracking-tight text-sm text-glow">{goal.title}</span>
+                    <div className="text-right">
+                      <span className="text-xs font-black text-primary">{current} / {target}</span>
+                      <span className="text-[9px] font-bold text-muted-foreground block uppercase tracking-tighter">{goal.unit}</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 1, delay: 0.3 + (idx * 0.1) }}
+                      className="h-full gold-gradient rounded-full"
+                    />
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Action Hub */}
+      <div className="space-y-4">
+        <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/80 flex items-center gap-2 px-1">
+          <Zap className="h-3.5 w-3.5" /> Hurtige Handlinger
+        </h2>
+        <div className="grid gap-3">
+          {[
+            { label: 'Udfyld check-in', to: '/client/checkin', detail: 'Ugentlig status' },
+            { label: 'Daglige habits', to: '/client/habits', detail: 'Hold kursen' },
+          ].map((link, idx) => (
+            <motion.button
+              key={link.to}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + (idx * 0.05) }}
+              onClick={() => navigate(link.to)}
+              className="w-full flex items-center justify-between glass-morphism p-5 rounded-2xl group hover:bg-primary/5 transition-all duration-300"
+            >
+              <div className="text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-0.5">{link.detail}</p>
+                <p className="text-sm font-black uppercase tracking-tight group-hover:text-primary transition-colors">{link.label}</p>
+              </div>
+              <div className="p-2 rounded-xl bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ArrowRight className="h-4 w-4 text-primary" />
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

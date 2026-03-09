@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ExerciseLog {
   date: string;
@@ -180,30 +181,38 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
   const otherPrograms = programs.filter(p => p.id !== program.id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Program Header with actions */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between">
+      <div className="premium-card p-6 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <Dumbbell className="h-12 w-12 text-primary" />
+        </div>
+
+        <div className="flex items-center justify-between relative z-10">
           <div>
-            <h3 className="text-sm font-semibold">{program.name}</h3>
-            <p className="text-xs text-muted-foreground">Fase {program.phase ?? '–'} · {days.length} dage · {program.status === 'active' ? '🟢 Aktiv' : '📦 Arkiveret'}</p>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80">Aktivt Program</span>
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+            </div>
+            <h3 className="text-xl font-black tracking-tighter gold-text">{program.name}</h3>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mt-1">
+              Fase {program.phase ?? '–'} · {days.length} Træningsdage
+            </p>
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => navigate(`/coach/program-builder?edit=${program.id}`)}
-              className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Redigér">
-              <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => duplicateMutation.mutate(program.id)}
-              className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Duplikér">
-              <Copy className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={() => archiveMutation.mutate(program.id)}
-              className="p-1.5 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Arkivér">
-              <Archive className="h-3.5 w-3.5" />
-            </button>
+          <div className="flex items-center gap-2">
+            {[
+              { icon: Pencil, onClick: () => navigate(`/coach/program-builder?edit=${program.id}`), label: 'Redigér' },
+              { icon: Copy, onClick: () => duplicateMutation.mutate(program.id), label: 'Duplikér' },
+              { icon: Archive, onClick: () => archiveMutation.mutate(program.id), label: 'Arkivér' },
+            ].map((btn, i) => (
+              <button key={i} onClick={btn.onClick}
+                className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-primary transition-all duration-300" title={btn.label}>
+                <btn.icon className="h-4 w-4" />
+              </button>
+            ))}
             <button onClick={() => { if (confirm('Slet program permanent?')) deleteMutation.mutate(program.id); }}
-              className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Slet">
-              <Trash2 className="h-3.5 w-3.5" />
+              className="p-2.5 rounded-xl bg-white/5 border border-white/5 hover:border-destructive/30 hover:bg-destructive/5 text-muted-foreground hover:text-destructive transition-all duration-300" title="Slet">
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -211,85 +220,149 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
 
       {/* PR Records */}
       {prs.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-3"><Trophy className="h-4 w-4 text-yellow-500" /><h4 className="text-sm font-semibold">Personal Records</h4></div>
-          <div className="flex flex-wrap gap-2">
+        <div className="glass-morphism p-6 rounded-2xl relative overflow-hidden">
+          <div className="flex items-center gap-2 mb-4">
+            <Trophy className="h-4 w-4 text-primary text-glow shadow-primary" />
+            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/80">Personal Records (PR)</h4>
+          </div>
+          <div className="flex flex-wrap gap-3">
             {prs.slice(0, 8).map((pr, i) => (
-              <Badge key={i} variant="outline" className="border-yellow-500/50 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 gap-1.5 py-1.5">
-                <Trophy className="h-3 w-3" />{pr.exerciseName}: {pr.weight}kg × {pr.reps}
-              </Badge>
+              <div key={i} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/5 group hover:border-primary/20 transition-all">
+                <div className="p-1.5 rounded-lg bg-primary/10">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-tight text-glow">{pr.exerciseName}</p>
+                  <p className="text-xs font-black text-foreground">{pr.weight}kg <span className="text-muted-foreground font-medium">× {pr.reps}</span></p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       )}
 
-      {volumeData.length > 1 && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center gap-2 mb-3"><TrendingUp className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Ugentlig volumen (kg × reps)</h4></div>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={volumeData}><XAxis dataKey="week" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} /><Tooltip /><Bar dataKey="volume" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} /></BarChart>
-            </ResponsiveContainer>
+      {/* Charts Section */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {volumeData.length > 1 && (
+          <div className="glass-morphism p-6 rounded-2xl">
+            <div className="flex items-center gap-2 mb-6">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/80">Ugentlig Volumen</h4>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={volumeData}>
+                  <XAxis dataKey="week" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.4)', fontWeight: 800 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.4)', fontWeight: 800 }} axisLine={false} tickLine={false} iconType="star" />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'rgba(20,20,20,0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
+                    itemStyle={{ color: '#D4AF37', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}
+                  />
+                  <Bar dataKey="volume" fill="#D4AF37" radius={[6, 6, 0, 0]} opacity={0.8} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {selectedExercise && selectedProgressData.length > 1 && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-semibold">Vægt over tid</h4>
-            <button onClick={() => setSelectedExercise(null)} className="text-xs text-muted-foreground hover:text-foreground">Luk</button>
-          </div>
-          <div className="h-40">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={selectedProgressData}><XAxis dataKey="date" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 10 }} unit="kg" /><Tooltip /><Line type="monotone" dataKey="kg" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} /></LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
+        {selectedExercise && selectedProgressData.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-morphism p-6 rounded-2xl relative"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/80">Vægt Progression</h4>
+              <button onClick={() => setSelectedExercise(null)} className="h-6 w-6 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 text-muted-foreground">×</button>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={selectedProgressData}>
+                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.4)', fontWeight: 800 }} axisLine={false} tickLine={false} />
+                  <YAxis unit="kg" tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.4)', fontWeight: 800 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: 'rgba(20,20,20,0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
+                  />
+                  <Line type="monotone" dataKey="kg" stroke="#D4AF37" strokeWidth={3} dot={{ r: 4, fill: '#D4AF37', strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        )}
+      </div>
 
-      {days.map(day => {
+      {days.map((day, idx) => {
         const dayExercises = exercises.filter(e => e.training_day_id === day.id);
         const isOpen = expandedDay === day.id;
         return (
-          <div key={day.id} className="rounded-xl border border-border bg-card overflow-hidden">
-            <button onClick={() => setExpandedDay(isOpen ? null : day.id)} className="w-full flex items-center justify-between p-4 text-sm font-medium hover:bg-secondary/50 transition-colors">
-              {day.day_name}
+          <motion.div
+            key={day.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + (idx * 0.05) }}
+            className="glass-morphism rounded-2xl overflow-hidden group"
+          >
+            <button
+              onClick={() => setExpandedDay(isOpen ? null : day.id)}
+              className="w-full flex items-center justify-between p-5 text-[10px] font-black uppercase tracking-[0.2em] group-hover:bg-primary/5 transition-all text-muted-foreground/60 hover:text-primary"
+            >
+              <div className="flex items-center gap-3">
+                <div className={`h-2 w-2 rounded-full ${isOpen ? 'gold-gradient' : 'bg-white/10'} transition-all`} />
+                {day.day_name}
+              </div>
               {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
-            {isOpen && (
-              <div className="px-4 pb-4 space-y-2">
-                {dayExercises.map(ex => {
-                  const exLogs = logs.filter(l => l.training_exercise_id === ex.id);
-                  const latestLog = exLogs[exLogs.length - 1];
-                  const pr = prs.find(p => p.exerciseName === ex.exercises?.name);
-                  const hasProgressData = (exerciseProgressData.get(ex.id)?.length ?? 0) > 1;
-                  return (
-                    <div key={ex.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium">{ex.exercises?.name}</p>
-                          {pr && latestLog && latestLog.weight_used === pr.weight && <Trophy className="h-3 w-3 text-yellow-500" />}
-                        </div>
-                        <p className="text-xs text-muted-foreground">{ex.sets} sæt × {ex.reps} reps {ex.tempo ? `· ${ex.tempo}` : ''}</p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {hasProgressData && (
-                          <button onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex.id); }} className="text-xs text-primary hover:underline">Graf</button>
-                        )}
-                        {latestLog && (
-                          <div className="text-right">
-                            <p className="text-xs font-medium">{latestLog.weight_used} kg × {latestLog.reps_completed}</p>
-                            <p className="text-[10px] text-muted-foreground">{new Date(latestLog.date).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}</p>
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="px-5 pb-5 space-y-3"
+                >
+                  {dayExercises.map(ex => {
+                    const exLogs = logs.filter(l => l.training_exercise_id === ex.id);
+                    const latestLog = exLogs[exLogs.length - 1];
+                    const pr = prs.find(p => p.exerciseName === ex.exercises?.name);
+                    const hasProgressData = (exerciseProgressData.get(ex.id)?.length ?? 0) > 1;
+                    return (
+                      <div key={ex.id} className="flex items-center justify-between py-4 border-b border-white/5 last:border-0 group/row">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-black uppercase tracking-tight group-hover/row:text-primary transition-colors">{ex.exercises?.name}</p>
+                            {pr && latestLog && latestLog.weight_used === pr.weight && (
+                              <div className="p-1 rounded bg-yellow-500/10">
+                                <Trophy className="h-3 w-3 text-yellow-500" />
+                              </div>
+                            )}
                           </div>
-                        )}
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                            {ex.sets} × {ex.reps} <span className="text-[8px] opacity-40 mx-1">·</span> {ex.tempo || '3010'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          {hasProgressData && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedExercise(ex.id); }}
+                              className="text-[9px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-colors border border-primary/10 px-2 py-1 rounded-lg"
+                            >
+                              Analyse
+                            </button>
+                          )}
+                          {latestLog && (
+                            <div className="text-right">
+                              <p className="text-xs font-black text-foreground">{latestLog.weight_used}<span className="text-[9px] ml-0.5 text-muted-foreground">kG</span> × {latestLog.reps_completed}</p>
+                              <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-tighter">{new Date(latestLog.date).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' })}</p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         );
       })}
 

@@ -50,13 +50,13 @@ export default function ClientHabitsTab({ clientId }: { clientId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 overflow-x-auto">
-      <table className="w-full text-xs">
+    <div className="premium-card p-6 overflow-x-auto scrollbar-hide">
+      <table className="w-full text-[10px] uppercase font-black tracking-widest border-separate border-spacing-y-2">
         <thead>
-          <tr className="border-b border-border">
-            <th className="text-left py-2 font-medium text-muted-foreground">Habit</th>
+          <tr>
+            <th className="text-left py-4 px-3 text-muted-foreground/60">Habit</th>
             {days.map(d => (
-              <th key={d} className="text-center py-2 font-medium text-muted-foreground w-10">
+              <th key={d} className="text-center py-4 px-1 text-muted-foreground/60 w-12">
                 {new Date(d).toLocaleDateString('da-DK', { weekday: 'short' })}
               </th>
             ))}
@@ -64,16 +64,24 @@ export default function ClientHabitsTab({ clientId }: { clientId: string }) {
         </thead>
         <tbody>
           {habits.map(habit => (
-            <tr key={habit.id} className="border-b border-border last:border-0">
-              <td className="py-2.5 font-medium flex items-center gap-1.5">
-                <CheckSquare className="h-3 w-3 text-primary" />
-                {habit.habit_name}
+            <tr key={habit.id} className="group transition-all duration-300">
+              <td className="py-4 px-3 bg-white/5 rounded-l-2xl border-l border-t border-b border-white/5 font-bold flex items-center gap-2 group-hover:bg-primary/5 transition-colors">
+                <div className="p-1 rounded bg-primary/10">
+                  <CheckSquare className="h-3 w-3 text-primary animate-pulse" />
+                </div>
+                <span className="truncate max-w-[120px]">{habit.habit_name}</span>
               </td>
-              {days.map(d => {
+              {days.map((d, idx) => {
                 const done = logs.some(l => l.habit_id === habit.id && l.date === d && l.completed);
+                const isLast = idx === days.length - 1;
                 return (
-                  <td key={d} className="text-center py-2.5">
-                    <span className={`inline-block h-4 w-4 rounded ${done ? 'bg-success' : 'bg-secondary'}`} />
+                  <td key={d} className={`text-center py-4 bg-white/5 border-t border-b border-white/5 group-hover:bg-primary/5 transition-all ${isLast ? 'rounded-r-2xl border-r' : ''}`}>
+                    <div className="flex justify-center">
+                      <div className={`h-5 w-5 rounded-lg transition-all duration-500 shadow-sm ${done
+                          ? 'gold-gradient shadow-primary/20 scale-110'
+                          : 'bg-background/40 border border-white/5 opacity-40'
+                        }`} />
+                    </div>
                   </td>
                 );
               })}

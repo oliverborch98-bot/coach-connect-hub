@@ -16,14 +16,18 @@ export default function StatCard({ label, value, icon: Icon, subtitle, variant =
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-border bg-card p-4 space-y-2"
+      className="premium-card p-5 space-y-3"
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-medium">{label}</span>
-        <Icon className={`h-4 w-4 ${iconColor}`} />
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</span>
+        <div className={`p-1.5 rounded-lg bg-primary/5 ${iconColor}`}>
+          <Icon className="h-4 w-4" />
+        </div>
       </div>
-      <p className="text-2xl font-bold">{value}</p>
-      {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      <div>
+        <p className="text-2xl font-bold tracking-tight">{value}</p>
+        {subtitle && <p className="text-[11px] text-muted-foreground mt-1 font-medium">{subtitle}</p>}
+      </div>
     </motion.div>
   );
 }

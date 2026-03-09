@@ -40,40 +40,62 @@ export default function CoachLayout() {
   });
 
   const linkClass = (isActive: boolean) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-      isActive
-        ? 'bg-primary/10 text-primary font-medium'
-        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive
+      ? 'bg-primary/15 text-primary font-bold text-glow shadow-[0_0_15px_-5px_hsl(40_60%_58%_/_0.3)]'
+      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
     }`;
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
+    <div className="min-h-screen flex w-full bg-background selection:bg-primary/30">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-60 flex-col border-r border-border bg-card/50 p-5 shrink-0">
-        <div className="mb-8">
-          <h1 className="text-lg font-extrabold tracking-tight gold-text">THE BUILD METHOD</h1>
-          <p className="text-xs text-muted-foreground mt-1">{user?.fullName}</p>
+      <aside className="hidden md:flex w-64 flex-col glass-dark border-r border-white/5 p-6 shrink-0 z-20">
+        <div className="mb-10">
+          <motion.h1
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-xl font-black tracking-tighter gold-text"
+          >
+            THE BUILD METHOD
+          </motion.h1>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mt-1.5 opacity-70">Coach Portal</p>
         </div>
-        <nav className="flex-1 space-y-1">
-          {navItems.map(item => (
-            <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => linkClass(isActive)}>
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </NavLink>
+
+        <nav className="flex-1 space-y-1.5 overflow-y-auto scrollbar-hide">
+          {navItems.map((item, idx) => (
+            <motion.div
+              key={item.to}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.05 }}
+            >
+              <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass(isActive)}>
+                <item.icon className="h-4 w-4" />
+                {item.label}
+              </NavLink>
+            </motion.div>
           ))}
         </nav>
-        <div className="flex items-center gap-2 px-3 py-2">
-          <NotificationBell />
-          {unreadCount > 0 && (
-            <span className="text-[11px] text-muted-foreground">
-              {unreadCount} ulæst{unreadCount !== 1 ? 'e' : ''} besked{unreadCount !== 1 ? 'er' : ''}
-            </span>
-          )}
+
+        <div className="mt-6 pt-6 border-t border-white/5 space-y-4">
+          <div className="flex items-center justify-between px-3 py-2 glass-morphism rounded-xl">
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-foreground">Notifikationer</span>
+                {unreadCount > 0 && (
+                  <span className="text-[9px] text-primary font-medium animate-pulse">
+                    {unreadCount} nye
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button onClick={signOut} className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-destructive transition-all duration-300 w-full hover:bg-destructive/5 rounded-lg">
+            <LogOut className="h-4 w-4" />
+            Log ud
+          </button>
         </div>
-        <button onClick={signOut} className="flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground hover:text-destructive transition-colors">
-          <LogOut className="h-4 w-4" />
-          Log ud
-        </button>
       </aside>
 
       {/* Main Content */}
