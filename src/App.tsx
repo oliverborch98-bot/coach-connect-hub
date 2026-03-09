@@ -74,6 +74,7 @@ function AppRoutes() {
           <Route path="/coach/exercises" element={<ExerciseLibrary />} />
           <Route path="/coach/recipes" element={<RecipeLibrary />} />
           <Route path="/coach/payments" element={<PaymentDashboard />} />
+          <Route path="/coach/access-requests" element={<AccessRequests />} />
           <Route path="/coach/ai-program" element={<AIProgramBuilder />} />
           <Route path="/coach/ai-nutrition" element={<AINutritionBuilder />} />
         </Route>

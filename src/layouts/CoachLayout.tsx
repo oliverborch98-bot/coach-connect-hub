@@ -9,6 +9,7 @@ const navItems = [
   { to: '/coach', icon: LayoutDashboard, label: 'Oversigt', end: true },
   { to: '/coach/calls', icon: Phone, label: 'Calls' },
   { to: '/coach/new-client', icon: UserPlus, label: 'Ny klient' },
+  { to: '/coach/access-requests', icon: InboxIcon, label: 'Anmodninger' },
   { to: '/coach/program-builder', icon: Dumbbell, label: 'Program' },
   { to: '/coach/nutrition-builder', icon: UtensilsCrossed, label: 'Kostplan' },
   { to: '/coach/exercises', icon: Library, label: 'Øvelser' },
