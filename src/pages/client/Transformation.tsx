@@ -316,7 +316,7 @@ export default function ClientTransformation() {
               <span>Start: {startWeight} kg</span><span>Mål: {goalWeight} kg</span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
-              <div className="h-full gold-gradient rounded-full" style={{ width: `${Math.min(100, Math.max(0, ((startWeight - currentWeight) / (startWeight - goalWeight)) * 100))}%` }} />
+              <div className="h-full lime-gradient rounded-full" style={{ width: `${Math.min(100, Math.max(0, ((startWeight - currentWeight) / (startWeight - goalWeight)) * 100))}%` }} />
             </div>
           </div>
         )}

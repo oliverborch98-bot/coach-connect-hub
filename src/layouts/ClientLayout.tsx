@@ -44,44 +44,46 @@ export default function ClientLayout() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
-      <header className="flex items-center justify-between px-6 py-4 glass-dark border-b border-white/5 sticky top-0 z-50">
-        <button onClick={signOut} className="p-2 rounded-xl hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-300">
+    <div className="min-h-screen flex flex-col bg-black selection:bg-primary/30 relative">
+      <div className="aurora-bg" />
+      
+      <header className="flex items-center justify-between px-6 py-5 liquid-glass border-b border-white/5 sticky top-0 z-50">
+        <button onClick={signOut} className="p-2.5 rounded-xl bg-white/5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-300">
           <LogOut className="h-5 w-5" />
         </button>
         <motion.h1
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-lg font-black tracking-tighter gold-text"
+          className="text-xl font-black tracking-tighter lime-text"
         >
           THE BUILD METHOD
         </motion.h1>
         <NotificationBell />
       </header>
 
-      <main className="flex-1 overflow-auto p-4 md:p-8 pb-28">
+      <main className="flex-1 overflow-auto p-4 md:p-10 pb-32 z-10">
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 glass-dark/95 backdrop-blur-xl border-t border-white/5 flex overflow-x-auto py-3 px-4 z-50 scrollbar-hide">
-        <div className="flex gap-2 min-w-max mx-auto">
+      <nav className="fixed bottom-6 left-6 right-6 h-20 liquid-glass rounded-3xl flex overflow-x-auto items-center py-2 px-6 z-50 scrollbar-hide border-white/10 shadow-2xl">
+        <div className="flex gap-4 min-w-max mx-auto h-full items-center">
           {navItems.map(item => (
             <NavLink key={item.to} to={item.to} end={item.end}
               className={({ isActive }) =>
-                `relative flex flex-col items-center gap-1.5 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all duration-300 ${isActive
-                  ? 'text-primary bg-primary/10 shadow-[0_0_15px_-5px_hsl(40_60%_58%_/_0.3)]'
+                `relative flex flex-col items-center justify-center gap-1.5 px-5 h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${isActive
+                  ? 'text-primary bg-primary/20 glow-lime'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                 }`
               }>
               <div className="relative">
                 <item.icon className="h-5 w-5" />
                 {item.badge && unreadCount > 0 && (
-                  <span className="absolute -top-2 -right-2 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary text-[9px] font-black text-primary-foreground px-1 border-2 border-background">
+                  <span className="absolute -top-2 -right-2 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary text-[9px] font-black text-primary-foreground px-1 border-2 border-black">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </div>
-              <span className="opacity-80">{item.label}</span>
+              <span className="opacity-90">{item.label}</span>
             </NavLink>
           ))}
         </div>

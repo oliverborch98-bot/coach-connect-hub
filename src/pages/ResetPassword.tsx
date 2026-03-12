@@ -85,7 +85,7 @@ export default function ResetPassword() {
                 supabase.auth.signOut();
                 navigate('/');
               }}
-              className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              className="w-full lime-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
               Gå til login
             </button>
@@ -164,7 +164,7 @@ export default function ResetPassword() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full lime-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {isSubmitting ? 'Opdaterer...' : 'Gem nyt password'}

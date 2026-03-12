@@ -105,7 +105,7 @@ export default function CoachDashboard() {
             animate={{ opacity: 1, x: 0 }}
             className="text-4xl font-black tracking-tighter"
           >
-            Performance <span className="gold-text">Oversigt</span>
+            Performance <span className="lime-text">Oversigt</span>
           </motion.h1>
           <p className="text-muted-foreground text-sm mt-2 font-medium">Velkommen tilbage. Her er status på dine klienter.</p>
         </div>

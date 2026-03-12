@@ -104,7 +104,7 @@ export default function ClientAIChat() {
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-lg mx-auto">
       {/* Header */}
       <div className="flex items-center gap-2 pb-3">
-        <div className="h-8 w-8 rounded-full gold-gradient flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full lime-gradient flex items-center justify-center">
           <Bot className="h-4 w-4 text-primary-foreground" />
         </div>
         <div>
@@ -181,7 +181,7 @@ export default function ClientAIChat() {
         <button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="p-2.5 rounded-xl gold-gradient text-primary-foreground disabled:opacity-50 transition-opacity"
+          className="p-2.5 rounded-xl lime-gradient text-primary-foreground disabled:opacity-50 transition-opacity"
         >
           <Send className="h-4 w-4" />
         </button>

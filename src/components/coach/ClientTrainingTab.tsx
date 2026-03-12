@@ -194,7 +194,7 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/80">Aktivt Program</span>
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
             </div>
-            <h3 className="text-xl font-black tracking-tighter gold-text">{program.name}</h3>
+            <h3 className="text-xl font-black tracking-tighter lime-text">{program.name}</h3>
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mt-1">
               Fase {program.phase ?? '–'} · {days.length} Træningsdage
             </p>
@@ -222,7 +222,7 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
       {prs.length > 0 && (
         <div className="glass-morphism p-6 rounded-2xl relative overflow-hidden">
           <div className="flex items-center gap-2 mb-4">
-            <Trophy className="h-4 w-4 text-primary text-glow shadow-primary" />
+            <Trophy className="h-4 w-4 text-primary text-glow-lime shadow-primary" />
             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/80">Personal Records (PR)</h4>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -232,7 +232,7 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
                   <TrendingUp className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-tight text-glow">{pr.exerciseName}</p>
+                  <p className="text-[10px] font-black uppercase tracking-tight text-glow-lime">{pr.exerciseName}</p>
                   <p className="text-xs font-black text-foreground">{pr.weight}kg <span className="text-muted-foreground font-medium">× {pr.reps}</span></p>
                 </div>
               </div>
@@ -256,9 +256,9 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
                   <YAxis tick={{ fontSize: 9, fill: 'rgba(255,255,255,0.4)', fontWeight: 800 }} axisLine={false} tickLine={false} iconType="star" />
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(20,20,20,0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
-                    itemStyle={{ color: '#D4AF37', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}
+                    itemStyle={{ color: 'hsl(84 100% 59%)', fontWeight: 900, fontSize: '10px', textTransform: 'uppercase' }}
                   />
-                  <Bar dataKey="volume" fill="#D4AF37" radius={[6, 6, 0, 0]} opacity={0.8} />
+                  <Bar dataKey="volume" fill="hsl(84 100% 59%)" radius={[6, 6, 0, 0]} opacity={0.8} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -283,7 +283,7 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
                   <Tooltip
                     contentStyle={{ backgroundColor: 'rgba(20,20,20,0.9)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
                   />
-                  <Line type="monotone" dataKey="kg" stroke="#D4AF37" strokeWidth={3} dot={{ r: 4, fill: '#D4AF37', strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="kg" stroke="hsl(84 100% 59%)" strokeWidth={3} dot={{ r: 4, fill: 'hsl(84 100% 59%)', strokeWidth: 0 }} activeDot={{ r: 6, strokeWidth: 0 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -307,7 +307,7 @@ export default function ClientTrainingTab({ clientId }: { clientId: string }) {
               className="w-full flex items-center justify-between p-5 text-[10px] font-black uppercase tracking-[0.2em] group-hover:bg-primary/5 transition-all text-muted-foreground/60 hover:text-primary"
             >
               <div className="flex items-center gap-3">
-                <div className={`h-2 w-2 rounded-full ${isOpen ? 'gold-gradient' : 'bg-white/10'} transition-all`} />
+                <div className={`h-2 w-2 rounded-full ${isOpen ? 'lime-gradient' : 'bg-white/10'} transition-all`} />
                 {day.day_name}
               </div>
               {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

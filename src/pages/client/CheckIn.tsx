@@ -159,7 +159,7 @@ export default function ClientCheckIn() {
         </div>
 
         <button type="submit" disabled={submitMutation.isPending}
-          className="w-full gold-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50">
+          className="w-full lime-gradient rounded-lg py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 flex items-center justify-center gap-2 disabled:opacity-50">
           {submitMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           {submitMutation.isPending ? 'Indsender...' : 'Indsend check-in'}
         </button>

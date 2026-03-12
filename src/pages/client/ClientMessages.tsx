@@ -154,7 +154,7 @@ export default function ClientMessages() {
         <button
           type="submit"
           disabled={!newMessage.trim() || sendMutation.isPending}
-          className="gold-gradient rounded-xl p-2.5 text-primary-foreground disabled:opacity-50"
+          className="lime-gradient rounded-xl p-2.5 text-primary-foreground disabled:opacity-50"
         >
           <Send className="h-4 w-4" />
         </button>

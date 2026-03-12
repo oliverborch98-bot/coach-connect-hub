@@ -55,7 +55,7 @@ export default function Leaderboard() {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
           className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center gap-4"
         >
-          <div className="h-12 w-12 rounded-full gold-gradient flex items-center justify-center">
+          <div className="h-12 w-12 rounded-full lime-gradient flex items-center justify-center">
             <span className="text-xl font-bold text-primary-foreground">#{myRank}</span>
           </div>
           <div>

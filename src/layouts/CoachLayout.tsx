@@ -41,87 +41,91 @@ export default function CoachLayout() {
   });
 
   const linkClass = (isActive: boolean) =>
-    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-300 ${isActive
-      ? 'bg-primary/15 text-primary font-bold text-glow shadow-[0_0_15px_-5px_hsl(40_60%_58%_/_0.3)]'
-      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-500 ${isActive
+      ? 'bg-primary/20 text-primary font-bold text-glow-lime-lime shadow-[0_0_20px_-5px_hsl(var(--primary)/30%)]'
+      : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
     }`;
 
   return (
-    <div className="min-h-screen flex w-full bg-background selection:bg-primary/30">
+    <div className="min-h-screen flex w-full bg-black selection:bg-primary/30 relative">
+      <div className="aurora-bg" />
+      
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col glass-dark border-r border-white/5 p-6 shrink-0 z-20">
-        <div className="mb-10">
+      <aside className="hidden md:flex w-72 flex-col liquid-glass border-r border-white/5 p-8 shrink-0 z-20">
+        <div className="mb-12">
           <motion.h1
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-xl font-black tracking-tighter gold-text"
+            className="text-2xl font-black tracking-tighter lime-text"
           >
             THE BUILD METHOD
           </motion.h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-bold mt-1.5 opacity-70">Coach Portal</p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            <p className="text-[10px] uppercase tracking-[0.3em] text-primary/80 font-black">Coach Portal</p>
+          </div>
         </div>
 
-        <nav className="flex-1 space-y-1.5 overflow-y-auto scrollbar-hide">
+        <nav className="flex-1 space-y-2 overflow-y-auto scrollbar-hide pr-2">
           {navItems.map((item, idx) => (
             <motion.div
               key={item.to}
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: idx * 0.05 }}
+              transition={{ delay: idx * 0.03 }}
             >
               <NavLink to={item.to} end={item.end} className={({ isActive }) => linkClass(isActive)}>
                 <item.icon className="h-4 w-4" />
-                {item.label}
+                <span className="tracking-tight">{item.label}</span>
               </NavLink>
             </motion.div>
           ))}
         </nav>
 
-        <div className="mt-6 pt-6 border-t border-white/5 space-y-4">
-          <div className="flex items-center justify-between px-3 py-2 glass-morphism rounded-xl">
+        <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
+          <div className="flex items-center justify-between px-4 py-3 glass-dark rounded-2xl border-white/5">
             <div className="flex items-center gap-3">
               <NotificationBell />
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-foreground">Notifikationer</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Inbox</span>
                 {unreadCount > 0 && (
-                  <span className="text-[9px] text-primary font-medium animate-pulse">
-                    {unreadCount} nye
+                  <span className="text-[10px] text-primary font-black animate-pulse">
+                    {unreadCount} NEW
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          <button onClick={signOut} className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-destructive transition-all duration-300 w-full hover:bg-destructive/5 rounded-lg">
+          <button onClick={signOut} className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-muted-foreground hover:text-destructive transition-all duration-300 w-full hover:bg-destructive/10 rounded-xl">
             <LogOut className="h-4 w-4" />
-            Log ud
+            <span>Afbryd session</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center justify-between p-4 border-b border-border">
-          <h1 className="text-base font-bold gold-text">THE BUILD METHOD</h1>
-          <div className="flex items-center gap-1">
+        <header className="md:hidden flex items-center justify-between p-5 liquid-glass z-20">
+          <h1 className="text-lg font-black tracking-tighter lime-text">THE BUILD METHOD</h1>
+          <div className="flex items-center gap-2">
             <NotificationBell />
-            <button onClick={signOut}><LogOut className="h-5 w-5 text-muted-foreground" /></button>
+            <button onClick={signOut} className="p-2 rounded-lg bg-white/5 text-muted-foreground"><LogOut className="h-5 w-5" /></button>
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-4 md:p-6 pb-20 md:pb-6">
+        <main className="flex-1 overflow-auto p-6 md:p-10 pb-24 md:pb-10 z-10">
           <Outlet />
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-sm border-t border-border flex justify-around py-2 z-50">
-          {navItems.map(item => (
+        <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 liquid-glass rounded-2xl flex justify-around items-center px-4 z-50 border-white/10 shadow-2xl">
+          {navItems.slice(0, 5).map(item => (
             <NavLink key={item.to} to={item.to} end={item.end}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 px-3 py-1.5 text-[10px] transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground'}`
+                `flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all duration-300 ${isActive ? 'bg-primary/20 text-primary glow-lime' : 'text-muted-foreground'}`
               }>
               <item.icon className="h-5 w-5" />
-              {item.label}
             </NavLink>
           ))}
         </nav>

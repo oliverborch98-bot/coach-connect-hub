@@ -86,7 +86,7 @@ export default function GoalsScore() {
           className="rounded-xl border border-primary/30 bg-primary/5 p-4"
         >
           <div className="flex items-center gap-3 mb-3">
-            <div className="h-10 w-10 rounded-full gold-gradient flex items-center justify-center">
+            <div className="h-10 w-10 rounded-full lime-gradient flex items-center justify-center">
               <Flame className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
@@ -94,7 +94,7 @@ export default function GoalsScore() {
               <p className="text-xs text-muted-foreground capitalize">{score.level ?? 'Begynder'}</p>
             </div>
             <div className="ml-auto text-right">
-              <p className="text-2xl font-bold gold-text">{score.total_points ?? 0}</p>
+              <p className="text-2xl font-bold lime-text">{score.total_points ?? 0}</p>
               <p className="text-[10px] text-muted-foreground">point</p>
             </div>
           </div>
@@ -173,7 +173,7 @@ export default function GoalsScore() {
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
                   <span>{start} {goal.unit}</span>
                   <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full gold-gradient rounded-full" style={{ width: `${pct}%` }} />
+                    <div className="h-full lime-gradient rounded-full" style={{ width: `${pct}%` }} />
                   </div>
                   <span>{target} {goal.unit}</span>
                 </div>

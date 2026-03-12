@@ -284,7 +284,7 @@ export default function OnboardingWizard({ clientId, onComplete }: OnboardingWiz
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-2xl font-extrabold gold-text">THE BUILD METHOD</h1>
+          <h1 className="text-2xl font-extrabold lime-text">THE BUILD METHOD</h1>
           <p className="text-sm text-muted-foreground">Velkommen! Lad os lære dig at kende.</p>
         </div>
 
