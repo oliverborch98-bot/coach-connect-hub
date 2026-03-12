@@ -114,7 +114,7 @@ export default function Login() {
               transition={{ duration: 0.5, ease: "circOut" }}
             >
               <form onSubmit={handleSubmit} className="space-y-6 liquid-glass p-10 rounded-[2.5rem] border border-white/10 shadow-3xl relative overflow-hidden group">
-                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 
                 <div className="space-y-2 relative z-10">
                   <label className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Email Identity</label>
