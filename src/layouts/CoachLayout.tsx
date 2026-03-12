@@ -42,7 +42,7 @@ export default function CoachLayout() {
 
   const linkClass = (isActive: boolean) =>
     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-500 ${isActive
-      ? 'bg-primary/20 text-primary font-bold text-glow-lime-lime shadow-[0_0_20px_-5px_hsl(var(--primary)/30%)]'
+      ? 'bg-primary/20 text-primary font-bold text-glow-lime shadow-[0_0_20px_-5px_hsl(var(--primary)/30%)]'
       : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
     }`;
 

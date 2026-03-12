@@ -30,7 +30,7 @@ export default function StatCard({ label, value, icon: Icon, subtitle, variant =
       </div>
       
       <div className="relative z-10">
-        <p className="text-3xl font-black tracking-tighter text-glow-lime-lime">{value}</p>
+        <p className="text-3xl font-black tracking-tighter text-glow-lime">{value}</p>
         {subtitle && <p className="text-[11px] text-muted-foreground mt-1.5 font-bold uppercase tracking-wider">{subtitle}</p>}
       </div>
     </motion.div>
