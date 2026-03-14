@@ -45,7 +45,7 @@ export default function ClientGoalsTab({ clientId }: { clientId: string }) {
               <span>Mål: {goal.target_value ?? '–'} {goal.unit}</span>
             </div>
             <div className="h-2 bg-secondary rounded-full overflow-hidden">
-              <div className="h-full lime-gradient rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full royal-blue-gradient rounded-full transition-all" style={{ width: `${pct}%` }} />
             </div>
             {milestones.length > 0 && (
               <div className="space-y-1">

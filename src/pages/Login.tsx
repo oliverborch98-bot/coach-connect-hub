@@ -39,7 +39,8 @@ export default function Login() {
     e.preventDefault();
     setIsSendingReset(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      const normalizedEmail = forgotEmail.trim().toLowerCase();
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
@@ -99,7 +100,7 @@ export default function Login() {
           </motion.div>
 
           <h1 className="text-5xl font-black tracking-tighter leading-none mb-3">
-            <span className="lime-text drop-shadow-[0_0_25px_hsl(var(--primary)/40%)]">THE BUILD METHOD</span>
+            <span className="royal-blue-text drop-shadow-[0_0_25px_hsl(var(--primary)/40%)]">THE BUILD METHOD</span>
           </h1>
           <p className="text-muted-foreground/60 text-[10px] font-black uppercase tracking-[0.5em]">Performance Analytics</p>
         </div>
@@ -159,7 +160,7 @@ export default function Login() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full lime-gradient shadow-[0_15px_30px_-10px_rgba(132,255,0,0.3)] rounded-2xl py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-black transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 flex items-center justify-center gap-3 mt-4 relative z-10"
+                  className="w-full royal-blue-gradient shadow-[0_15px_30px_-10px_rgba(37,99,235,0.3)] rounded-2xl py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-white transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 flex items-center justify-center gap-3 mt-4 relative z-10"
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   {isLoading ? 'VERIFICERER...' : 'Enter Sanctuary'}
@@ -193,11 +194,11 @@ export default function Login() {
             >
               {resetSent ? (
                 <div className="liquid-glass rounded-[2.5rem] border border-white/10 p-10 text-center space-y-8">
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20 shadow-[0_0_30px_rgba(132,255,0,0.2)]">
+                  <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20 shadow-[0_0_30px_rgba(37,99,235,0.2)]">
                     <Mail className="h-8 w-8 text-primary animate-bounce" />
                   </div>
                   <div className="space-y-3">
-                    <h2 className="text-2xl font-black uppercase tracking-tighter">NULSTILLING <span className="lime-text">SENDT</span></h2>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter">NULSTILLING <span className="royal-blue-text">SENDT</span></h2>
                     <p className="text-xs text-muted-foreground font-medium leading-relaxed px-4">
                       Tjek din inbox for <strong className="text-primary">{forgotEmail}</strong>. Vi har sendt dig en ny adgangsnøgle.
                     </p>
@@ -219,7 +220,7 @@ export default function Login() {
                     >
                       <ArrowLeft className="h-5 w-5" />
                     </button>
-                    <h2 className="text-sm font-black uppercase tracking-[0.2em] lime-text">Nulstil Nøgle</h2>
+                    <h2 className="text-sm font-black uppercase tracking-[0.2em] royal-blue-text">Nulstil Nøgle</h2>
                   </div>
 
                   <p className="text-[11px] text-muted-foreground/60 font-medium leading-relaxed">
@@ -241,7 +242,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isSendingReset}
-                    className="w-full lime-gradient rounded-2xl py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-2"
+                    className="w-full royal-blue-gradient rounded-2xl py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-2"
                   >
                     {isSendingReset ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                     {isSendingReset ? 'SENDER...' : 'SEND NULSTILLING'}
@@ -259,11 +260,11 @@ export default function Login() {
             >
               {requestSent ? (
                 <div className="liquid-glass rounded-[2.5rem] border border-white/10 p-10 text-center space-y-8">
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20 shadow-[0_0_30px_rgba(132,255,0,0.2)]">
+                  <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20 shadow-[0_0_30px_rgba(37,99,235,0.2)]">
                     <Send className="h-8 w-8 text-primary animate-pulse" />
                   </div>
                   <div className="space-y-3">
-                    <h2 className="text-2xl font-black uppercase tracking-tighter">ANMODNING <span className="lime-text">MODTAGET</span></h2>
+                    <h2 className="text-2xl font-black uppercase tracking-tighter">ANMODNING <span className="royal-blue-text">MODTAGET</span></h2>
                     <p className="text-xs text-muted-foreground font-medium leading-relaxed px-4">
                       Vi behandler din anmodning om medlemskab. Du hører fra os indenfor kort tid.
                     </p>
@@ -285,7 +286,7 @@ export default function Login() {
                     >
                       <ArrowLeft className="h-5 w-5" />
                     </button>
-                    <h2 className="text-sm font-black uppercase tracking-[0.2em] lime-text">Anmod om Plads</h2>
+                    <h2 className="text-sm font-black uppercase tracking-[0.2em] royal-blue-text">Anmod om Plads</h2>
                   </div>
 
                   <div className="space-y-4">
@@ -338,7 +339,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={isSubmittingRequest}
-                    className="w-full lime-gradient rounded-2xl py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-2 outline-none group"
+                    className="w-full royal-blue-gradient rounded-2xl py-4.5 text-[11px] font-black uppercase tracking-[0.2em] text-black hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 mt-2 outline-none group"
                   >
                     {isSubmittingRequest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />}
                     {isSubmittingRequest ? 'SENDER...' : 'SEND ANMODNING'}

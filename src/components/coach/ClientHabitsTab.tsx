@@ -78,7 +78,7 @@ export default function ClientHabitsTab({ clientId }: { clientId: string }) {
                   <td key={d} className={`text-center py-4 bg-white/5 border-t border-b border-white/5 group-hover:bg-primary/5 transition-all ${isLast ? 'rounded-r-2xl border-r' : ''}`}>
                     <div className="flex justify-center">
                       <div className={`h-5 w-5 rounded-lg transition-all duration-500 shadow-sm ${done
-                          ? 'lime-gradient shadow-primary/20 scale-110'
+                          ? 'royal-blue-gradient shadow-primary/20 scale-110'
                           : 'bg-background/40 border border-white/5 opacity-40'
                         }`} />
                     </div>

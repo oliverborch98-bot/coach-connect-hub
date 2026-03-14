@@ -1,10 +1,26 @@
-# Welcome to your Lovable project
+## The Build Method (Design System)
 
-## Project info
+This project uses a custom high-end aesthetic called **"The Build Method"**.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+- **Primary Aesthetic:** Black & Lime (High-Tech / Premium)
+- **Core Tokens**:
+  - `--primary`: `84 100% 59%` (Vibrant Lime)
+  - `--background`: `0 0% 0%` (Onye Black)
+- **Key Utilities**:
+  - `.liquid-glass`: Heavy blur (20px+) with elegant glass borders.
+  - `.aurora-bg`: Animated radial gradients for cinematic backgrounds.
+  - `.lime-text`: Gradient text with lime glow.
+
+## Known Gotchas & Interaction Notes
+
+### 1. Login "Invisible Wall" Bug
+When adding decorative overlays (like glows or gradient divs) to the login form, **always** include the `pointer-events-none` class. Failure to do so will block all mouse interaction (clicks/typing) with the underlying form inputs, creating an "invisible wall".
+
+### 2. Framer Motion Imports
+Ensure all layout components (`CoachLayout`, `ClientLayout`) have explicit `framer-motion` imports to prevent runtime `ReferenceError` crashes.
 
 ## How can I edit this code?
+... (rest of the file)
 
 There are several ways of editing your application.
 

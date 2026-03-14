@@ -47,14 +47,14 @@ export default function ClientLayout() {
     <div className="min-h-screen flex flex-col bg-black selection:bg-primary/30 relative">
       <div className="aurora-bg" />
       
-      <header className="flex items-center justify-between px-6 py-5 liquid-glass border-b border-white/5 sticky top-0 z-50">
+      <header className="flex items-center justify-between px-6 py-5 glass-dark border-b border-white/5 sticky top-0 z-50">
         <button onClick={signOut} className="p-2.5 rounded-xl bg-white/5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all duration-300">
           <LogOut className="h-5 w-5" />
         </button>
         <motion.h1
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-xl font-black tracking-tighter lime-text"
+          className="text-xl font-black tracking-tighter royal-blue-text"
         >
           THE BUILD METHOD
         </motion.h1>
@@ -65,13 +65,13 @@ export default function ClientLayout() {
         <Outlet />
       </main>
 
-      <nav className="fixed bottom-6 left-6 right-6 h-20 liquid-glass rounded-3xl flex overflow-x-auto items-center py-2 px-6 z-50 scrollbar-hide border-white/10 shadow-2xl">
+      <nav className="fixed bottom-6 left-6 right-6 h-20 glass-dark rounded-3xl flex overflow-x-auto items-center py-2 px-6 z-50 scrollbar-hide border border-white/10 shadow-2xl">
         <div className="flex gap-4 min-w-max mx-auto h-full items-center">
           {navItems.map(item => (
             <NavLink key={item.to} to={item.to} end={item.end}
               className={({ isActive }) =>
                 `relative flex flex-col items-center justify-center gap-1.5 px-5 h-14 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${isActive
-                  ? 'text-primary bg-primary/20 glow-lime'
+                  ? 'text-primary bg-primary/20 glow-royal-blue'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                 }`
               }>

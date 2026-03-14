@@ -139,7 +139,7 @@ export default function AccessRequests() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleApprove(req)}
-                      className="flex-1 lime-gradient rounded-lg py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
+                      className="flex-1 royal-blue-gradient rounded-lg py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
                     >
                       <Check className="h-4 w-4" /> Godkend & opret
                     </button>

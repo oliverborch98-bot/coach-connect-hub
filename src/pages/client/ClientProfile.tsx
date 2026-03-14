@@ -176,7 +176,7 @@ export default function ClientProfile() {
               <input type="number" value={age} onChange={e => setAge(e.target.value)} className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm" />
             </div>
             <div className="flex gap-2">
-              <button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending} className="lime-gradient rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground">
+              <button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending} className="royal-blue-gradient rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground">
                 {updateMutation.isPending ? 'Gemmer...' : 'Gem'}
               </button>
               <button onClick={() => setEditing(false)} className="rounded-lg px-4 py-2 text-sm bg-secondary text-foreground">

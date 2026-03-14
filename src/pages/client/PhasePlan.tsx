@@ -60,7 +60,7 @@ export default function PhasePlan() {
         className="rounded-xl border border-border bg-card p-4"
       >
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <div className="h-full lime-gradient rounded-full transition-all duration-500" style={{ width: `${phasePct}%` }} />
+          <div className="h-full royal-blue-gradient rounded-full transition-all duration-500" style={{ width: `${phasePct}%` }} />
         </div>
         <div className="flex justify-between mt-2 text-[10px] text-muted-foreground">
           <span>Md 1</span>
@@ -90,7 +90,7 @@ export default function PhasePlan() {
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                    isActive ? 'lime-gradient' : isCompleted ? 'bg-success/20' : 'bg-secondary'
+                    isActive ? 'royal-blue-gradient' : isCompleted ? 'bg-success/20' : 'bg-secondary'
                   }`}>
                     {isCompleted ? <CheckCircle2 className="h-4 w-4 text-success" /> : isActive ? <Play className="h-4 w-4 text-primary-foreground" /> : <Lock className="h-4 w-4 text-muted-foreground" />}
                   </div>

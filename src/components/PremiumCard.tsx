@@ -24,7 +24,7 @@ export default function PremiumCard({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay, ease: [0.23, 1, 0.32, 1] }}
-            className={`premium-card p-8 border-white/5 relative overflow-hidden group ${className}`}
+            className={`premium-card glass-reflection p-8 border-white/5 relative overflow-hidden group ${className}`}
         >
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[80px] rounded-full -mr-32 -mt-32 transition-all duration-700 group-hover:bg-primary/10" />
             
@@ -32,7 +32,7 @@ export default function PremiumCard({
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
                     <div>
                         {title && (
-                            <h3 className="text-xl font-black tracking-tighter lime-text flex items-center gap-2">
+                            <h3 className="text-xl font-black tracking-tighter royal-blue-text flex items-center gap-2">
                                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                                 {title}
                             </h3>

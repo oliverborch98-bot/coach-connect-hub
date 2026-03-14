@@ -42,7 +42,7 @@ export default function CoachLayout() {
 
   const linkClass = (isActive: boolean) =>
     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-500 ${isActive
-      ? 'bg-primary/20 text-primary font-bold text-glow-lime shadow-[0_0_20px_-5px_hsl(var(--primary)/30%)]'
+      ? 'bg-primary/20 text-primary font-bold text-glow-royal-blue shadow-[0_0_20px_-5px_hsl(var(--primary)/30%)]'
       : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
     }`;
 
@@ -51,12 +51,12 @@ export default function CoachLayout() {
       <div className="aurora-bg" />
       
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-72 flex-col liquid-glass border-r border-white/5 p-8 shrink-0 z-20">
+      <aside className="hidden md:flex w-72 flex-col glass-dark border-r border-white/5 p-8 shrink-0 z-20">
         <div className="mb-12">
           <motion.h1
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-2xl font-black tracking-tighter lime-text"
+            className="text-2xl font-black tracking-tighter royal-blue-text"
           >
             THE BUILD METHOD
           </motion.h1>
@@ -106,8 +106,8 @@ export default function CoachLayout() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center justify-between p-5 liquid-glass z-20">
-          <h1 className="text-lg font-black tracking-tighter lime-text">THE BUILD METHOD</h1>
+        <header className="md:hidden flex items-center justify-between p-5 glass-dark border-b border-white/5 z-20">
+          <h1 className="text-lg font-black tracking-tighter royal-blue-text">THE BUILD METHOD</h1>
           <div className="flex items-center gap-2">
             <NotificationBell />
             <button onClick={signOut} className="p-2 rounded-lg bg-white/5 text-muted-foreground"><LogOut className="h-5 w-5" /></button>
@@ -119,11 +119,11 @@ export default function CoachLayout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 liquid-glass rounded-2xl flex justify-around items-center px-4 z-50 border-white/10 shadow-2xl">
+        <nav className="md:hidden fixed bottom-6 left-6 right-6 h-16 glass-dark rounded-2xl flex justify-around items-center px-4 z-50 border border-white/10 shadow-2xl">
           {navItems.slice(0, 5).map(item => (
             <NavLink key={item.to} to={item.to} end={item.end}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all duration-300 ${isActive ? 'bg-primary/20 text-primary glow-lime' : 'text-muted-foreground'}`
+                `flex flex-col items-center justify-center gap-1 w-12 h-12 rounded-xl transition-all duration-300 ${isActive ? 'bg-primary/20 text-primary glow-royal-blue' : 'text-muted-foreground'}`
               }>
               <item.icon className="h-5 w-5" />
             </NavLink>

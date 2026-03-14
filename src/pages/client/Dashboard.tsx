@@ -92,7 +92,7 @@ export default function ClientDashboard() {
           animate={{ opacity: 1, x: 0 }}
           className="text-3xl font-black tracking-tighter"
         >
-          Din <span className="lime-text">Progression</span>
+          Din <span className="royal-blue-text">Progression</span>
         </motion.h1>
       </header>
 
@@ -132,7 +132,7 @@ export default function ClientDashboard() {
           </div>
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">Måned</p>
           <div className="flex items-end gap-1.5">
-            <span className="text-3xl font-black tracking-tighter text-glow-lime">{month}</span>
+            <span className="text-3xl font-black tracking-tighter text-glow-royal-blue">{month}</span>
             <span className="text-xs font-bold text-muted-foreground/40 mb-1.5 uppercase tracking-tighter">af 6</span>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function ClientDashboard() {
             <TrendingUp className="h-16 w-16 text-primary" />
           </div>
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-2">Fase</p>
-          <span className="text-xl font-black uppercase tracking-tighter lime-text">{phase}</span>
+          <span className="text-xl font-black uppercase tracking-tighter royal-blue-text">{phase}</span>
         </div>
       </div>
 
@@ -161,7 +161,7 @@ export default function ClientDashboard() {
                 initial={{ width: 0 }}
                 animate={{ width: `${phasePct}%` }}
                 transition={{ duration: 1, ease: "easeOut" }}
-                className="h-full lime-gradient rounded-full shadow-[0_0_10px_rgba(212,175,55,0.3)]"
+                className="h-full royal-blue-gradient rounded-full shadow-[0_0_10px_rgba(212,175,55,0.3)]"
               />
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function ClientDashboard() {
       {/* Goals Section */}
       <div className="space-y-4">
         <h2 className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground/80 flex items-center gap-2 px-1">
-          <Target className="h-3.5 w-3.5 text-glow-lime shadow-primary" /> Aktive Mål
+          <Target className="h-3.5 w-3.5 text-glow-royal-blue shadow-primary" /> Aktive Mål
         </h2>
 
         {goals.length === 0 ? (
@@ -210,7 +210,7 @@ export default function ClientDashboard() {
                   className="glass-morphism p-5 rounded-2xl group hover:border-primary/20 transition-all duration-300"
                 >
                   <div className="flex justify-between items-start mb-4">
-                    <span className="font-black uppercase tracking-tight text-sm text-glow-lime">{goal.title}</span>
+                    <span className="font-black uppercase tracking-tight text-sm text-glow-royal-blue">{goal.title}</span>
                     <div className="text-right">
                       <span className="text-xs font-black text-primary">{current} / {target}</span>
                       <span className="text-[9px] font-bold text-muted-foreground block uppercase tracking-tighter">{goal.unit}</span>
@@ -221,7 +221,7 @@ export default function ClientDashboard() {
                       initial={{ width: 0 }}
                       animate={{ width: `${pct}%` }}
                       transition={{ duration: 1, delay: 0.3 + (idx * 0.1) }}
-                      className="h-full lime-gradient rounded-full"
+                      className="h-full royal-blue-gradient rounded-full"
                     />
                   </div>
                 </motion.div>

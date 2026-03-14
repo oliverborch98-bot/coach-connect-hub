@@ -39,9 +39,9 @@ export default function ClientCard({ id, name, month, compliance, lastCheckin, s
     <motion.button
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02, y: -2 }}
+      whileHover={{ scale: 1.01, y: -2 }}
       onClick={() => navigate(`/coach/client/${id}`)}
-      className="w-full text-left premium-card p-5 group relative overflow-hidden"
+      className="w-full text-left premium-card glass-reflection p-5 group relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <Sparkles className="h-4 w-4 text-primary/40" />

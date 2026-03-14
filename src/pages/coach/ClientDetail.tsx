@@ -184,7 +184,7 @@ export default function CoachClientDetail() {
           <h3 className="text-sm font-semibold mb-3">Vægtudvikling</h3>
           <div className="flex items-center gap-4">
             <div className="text-center"><p className="text-2xl font-bold">{startW}</p><p className="text-xs text-muted-foreground">Start</p></div>
-            <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden"><div className="h-full lime-gradient rounded-full" style={{ width: `${weightPct}%` }} /></div>
+            <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden"><div className="h-full royal-blue-gradient rounded-full" style={{ width: `${weightPct}%` }} /></div>
             <div className="text-center"><p className="text-2xl font-bold text-primary">{currW}</p><p className="text-xs text-muted-foreground">Nu</p></div>
             <div className="text-center"><p className="text-2xl font-bold text-muted-foreground">{goalW}</p><p className="text-xs text-muted-foreground">Mål</p></div>
           </div>
