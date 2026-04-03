@@ -204,7 +204,16 @@ export const translations: Translations = {
   back_to_landing: { da: '← Tilbage til forsiden', en: '← Back to frontpage' },
   go_to_home: { da: 'Gå til forsiden', en: 'Go to frontpage' },
   page_not_found: { da: 'Siden blev ikke fundet', en: 'Page not found' },
-  page_not_found_desc: { da: 'Beklager, vi kunne ikke finde den side du ledte efter.', en: 'Sorry, we couldn\'t find the page you were looking for.' },
+  page_not_found_desc: { da: 'Beklager, we kunne ikke finde den side du ledte efter.', en: 'Sorry, we couldn\'t find the page you were looking for.' },
+
+  // Login Page - Premium Experience
+  login_premium_badge: { da: 'Premium Oplevelse', en: 'Premium Experience' },
+  login_performance_title: { da: 'Performance Data', en: 'Performance Analytics' },
+  login_email_label: { da: 'Din Email', en: 'Your Email' },
+  login_password_label: { da: 'Din Nøgle', en: 'Your Key' },
+  login_button_text: { da: 'Log Ind', en: 'Enter Sanctuary' },
+  login_forgot_password: { da: 'Glemt din nøgle?', en: 'Forgot your key?' },
+  login_request_access: { da: 'Anmod om adgang', en: 'Request access' },
 };
 
 interface LanguageContextType {

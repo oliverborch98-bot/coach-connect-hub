@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Link, Navigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Eye, EyeOff, ArrowLeft, Send, Mail, Sparkles } from 'lucide-react';
@@ -8,6 +9,7 @@ import { toast } from 'sonner';
 
 export default function Login() {
   const { signIn, isLoading, user } = useAuth();
+  const { t } = useLanguage();
 
   // Redirect authenticated users directly to their dashboard
   if (!isLoading && user) {
@@ -96,7 +98,7 @@ export default function Login() {
         className="absolute top-8 left-8 flex items-center gap-2 text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/40 hover:text-primary transition-all group z-50"
       >
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-        Tilbage til forsiden
+        {t('back_to_landing')}
       </Link>
 
       <motion.div
@@ -113,13 +115,13 @@ export default function Login() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-6 backdrop-blur-md"
           >
             <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary/90">Premium Experience</span>
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-primary/90">{t('login_premium_badge')}</span>
           </motion.div>
 
           <h1 className="text-5xl font-black tracking-tighter leading-none mb-3">
             <span className="royal-blue-text drop-shadow-[0_0_25px_hsl(var(--primary)/40%)]">THE BUILD METHOD</span>
           </h1>
-          <p className="text-muted-foreground/60 text-sm font-black uppercase tracking-[0.5em]">Performance Analytics</p>
+          <p className="text-muted-foreground/60 text-sm font-black uppercase tracking-[0.5em]">{t('login_performance_title')}</p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -135,7 +137,7 @@ export default function Login() {
                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
                 
                 <div className="space-y-3 relative z-10">
-                  <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Email Identity</label>
+                  <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">{t('login_email_label')}</label>
                   <div className="relative group/input">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30 group-focus-within/input:text-primary transition-colors" />
                     <input
@@ -150,7 +152,7 @@ export default function Login() {
                 </div>
                 
                 <div className="space-y-3 relative z-10">
-                  <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">Security Key</label>
+                  <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 px-1">{t('login_password_label')}</label>
                   <div className="relative group/input">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -180,7 +182,7 @@ export default function Login() {
                   className="w-full royal-blue-gradient shadow-[0_15px_30px_-10px_rgba(37,99,235,0.3)] rounded-2xl py-5 text-sm font-black uppercase tracking-[0.2em] text-white transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 flex items-center justify-center gap-3 mt-4 relative z-10"
                 >
                   {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  {isLoading ? 'VERIFICERER...' : 'Enter Sanctuary'}
+                  {isLoading ? 'VERIFICERER...' : t('login_button_text')}
                 </button>
 
                 <button
@@ -188,7 +190,7 @@ export default function Login() {
                   onClick={() => { setShowForgotPassword(true); setForgotEmail(email); }}
                   className="w-full min-h-[44px] text-sm font-black uppercase tracking-[0.2em] text-muted-foreground/40 hover:text-primary transition-all mt-4 relative z-10"
                 >
-                  Glemt din nøgle?
+                  {t('login_forgot_password')}
                 </button>
               </form>
 
@@ -197,7 +199,7 @@ export default function Login() {
                   onClick={() => setShowRequestForm(true)}
                   className="text-sm font-bold text-muted-foreground/40 hover:text-primary transition-colors group py-4 px-2"
                 >
-                  Ny på platformen? <span className="text-primary uppercase tracking-tighter ml-1 border-b border-primary/20 group-hover:border-primary transition-all">Anmod om adgang</span>
+                  Ny på platformen? <span className="text-primary uppercase tracking-tighter ml-1 border-b border-primary/20 group-hover:border-primary transition-all">{t('login_request_access')}</span>
                 </button>
               </div>
             </motion.div>
