@@ -1,0 +1,1 @@
+ALTER TABLE public.client_profiles ALTER COLUMN package_type SET DEFAULT 'The Build Method 6 måneder';

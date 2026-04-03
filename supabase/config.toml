@@ -1,0 +1,71 @@
+project_id = "nlvqrpxszbdpvqzwqifg"
+
+[functions.create-client]
+verify_jwt = false
+
+[functions.setup-coach]
+verify_jwt = false
+
+[functions.setup-test-client]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = false
+
+[functions.customer-portal]
+verify_jwt = false
+
+[functions.send-email]
+verify_jwt = false
+
+[functions.send-nutrition-email]
+verify_jwt = false
+
+[functions.send-checkin-reminder]
+verify_jwt = false
+
+[functions.client-chat]
+verify_jwt = false
+
+[functions.analyze-checkin]
+verify_jwt = false
+
+[functions.generate-nutrition]
+verify_jwt = false
+
+[functions.generate-program]
+verify_jwt = false
+
+[functions.ai-build-program]
+verify_jwt = false
+
+[functions.ai-build-nutrition]
+verify_jwt = false
+
+[functions.delete-client]
+enabled = true
+verify_jwt = true
+import_map = "./functions/delete-client/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/delete-client/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/delete-client/*.html" ]
+
+[functions.seed-documents]
+enabled = true
+verify_jwt = false
+import_map = "./functions/seed-documents/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/seed-documents/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/seed-documents/*.html" ]
