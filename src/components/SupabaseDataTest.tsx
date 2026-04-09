@@ -6,29 +6,33 @@ import { createClient } from "@/utils/supabase/client";
  * Note: Uses the browser client as this is a standard React component in Vite.
  */
 export default function SupabaseDataTest() {
-  const [todos, setTodos] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchTodos = async () => {
-      const { data } = await supabase.from('todos').select();
+    const fetchProfiles = async () => {
+      const { data, error } = await supabase.from('profiles').select('id, full_name').limit(10);
+      if (error) {
+        console.error('Error fetching profiles:', error);
+        return;
+      }
       if (data) {
-        setTodos(data);
+        setProfiles(data);
       }
     };
-    fetchTodos();
+    fetchProfiles();
   }, []);
 
   return (
     <div className="p-4 border rounded shadow-sm bg-background">
-      <h2 className="text-xl font-bold mb-4">Supabase Todos</h2>
+      <h2 className="text-xl font-bold mb-4">Supabase Profiles</h2>
       <ul className="list-disc pl-5">
-        {todos?.map((todo) => (
-          <li key={todo.id} className="text-muted-foreground">
-            {todo.name}
+        {profiles?.map((profile) => (
+          <li key={profile.id} className="text-muted-foreground">
+            {profile.full_name || 'Anonymous User'}
           </li>
         ))}
-        {todos.length === 0 && <p className="text-sm italic">Loading or no todos found...</p>}
+        {profiles.length === 0 && <p className="text-sm italic">Loading or no profiles found...</p>}
       </ul>
     </div>
   );
